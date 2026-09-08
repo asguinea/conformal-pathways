@@ -1,0 +1,29 @@
+# Local environments and build products
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+build/
+dist/
+.DS_Store
+
+# Local configuration and externally obtained assets
+.env
+.env.*
+!.env.example
+/data/
+/datasets/
+/artifacts/
+/results/
+*.npy
+*.npz
+*.pt
+*.pth
+*.ckpt
+*.pem
+*.key
