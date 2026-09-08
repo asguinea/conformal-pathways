@@ -23,7 +23,10 @@ comparison records, reproduced from a separately installed wheel with network
 access blocked. It supports mechanism checks under an invented sampling model.
 It does not establish an advantage for the combined score over the model-only
 baseline or clinical safety; see [results and limitations](docs/batch-3-results.md).
-Real-image runs await fully local dataset files.
+The dataset files are now local, but the input audit found duplicate IDRiD
+images and conflicting labels, including overlap between provider training and
+test partitions. Real-image fitting remains blocked; see the
+[input audit](docs/batch-3-input-audit.md).
 
 ## Quick start
 

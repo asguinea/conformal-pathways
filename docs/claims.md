@@ -14,7 +14,7 @@ evidence have different scopes.
 | C7 | Outperforms the model-only baseline | Not established | [Prespecified synthetic comparisons](batch-3-results.md) do not establish an advantage for `main`; no real-image result is available |
 | C8 | Image caches identify and validate their inputs and model request | Implemented; generated-image CPU tests pass | Integrity/staleness checks, explicit seeds, no weight fallback. Real pretrained extraction, accelerator behavior, and full experiment reproduction remain unverified |
 | C9 | Cleared for public redistribution | Pending | Ownership, license, attribution, and final distributed-asset/history review |
-| C10 | Supplies a reproducible synthetic benchmark under a frozen protocol | Verified on one host | 5,760 records, 448 summary rows, 384 paired rows; all 5,760 records reproduce exactly from an isolated installed wheel. [Verification](batch-3-verification.md), [results](../evidence/batch3-v1/README.md) and [interpretation](batch-3-results.md). Real-data suite pending offline inputs |
+| C10 | Supplies a reproducible synthetic benchmark under a frozen protocol | Verified on one host | 5,760 records, 448 summary rows, 384 paired rows; all 5,760 records reproduce exactly from an isolated installed wheel. [Verification](batch-3-verification.md), [results](../evidence/batch3-v1/README.md) and [interpretation](batch-3-results.md). Real-data suite blocked by [duplicate images and label conflicts](batch-3-input-audit.md) |
 
 The `safety` module and metric names containing `safe` refer only to the
 [toy predicates](toy-rules.md). A selected-path violation rate is conditional on

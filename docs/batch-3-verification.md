@@ -1,9 +1,10 @@
 # Batch 3 verification
 
 Recorded 2026-09-08 for version `0.3.0.dev0`. **The synthetic portion is complete;
-the real-data extension is blocked on offline inputs.** This is not public-release
+the real-data extension is blocked by duplicate images and conflicting labels.** This is not public-release
 clearance. The [machine-readable record](../evidence/batch3-verification.json)
-contains hashes, environments, timings, test status, and the input blocker.
+contains the earlier synthetic verification and offline-input status. The
+[later input audit](batch-3-input-audit.md) records the current blocker.
 
 ## Results and independent reproduction
 
@@ -74,20 +75,21 @@ partition-qualified IDs and regression coverage were added before the freeze.
 A small fixture test also exposed a synthetic-only report completeness bug; that
 was corrected before the freeze. Neither was a post-benchmark outcome adjustment.
 
-An initial image-hashing audit stalled on cloud-only placeholders and was
-terminated before fitting. The audited preflight now fails promptly: the latest
-record found 193 of 516 IDRiD images and all 485 selected RIM-ONE images still
-cloud-only. Earlier preparation counted 228 IDRiD placeholders; availability
-changed as the operating system hydrated some files. No incomplete dataset was
-accepted, no model was fitted on a selected resident subset, and no real result
-is reported. There is no completed real input seal.
+Earlier audits were blocked by cloud-only images (228, then 193 IDRiD files and
+all 485 selected RIM-ONE files). After restoring every required image locally,
+the next audit found six IDRiD duplicate pairs, one crossing provider partitions,
+and four pairs with conflicting labels. The runner rejected these inputs before
+real fitting. All 375 tests also passed in the new local Python 3.12.13 environment.
+The [input audit](batch-3-input-audit.md) documents this later result separately
+from the earlier synthetic evidence. No images or labels were changed and no
+real input seal was created.
 
-Once these folders are fully local, run the prespecified input audit, commit its
-seal before fitting, execute the 80-record real suite, and independently repeat
-fresh feature extraction. Check [dataset evidence](dataset-evidence.md) for the
-provider layout, attribution, exclusions, and commands. New source, labels,
-parameters, or tolerances would require a disclosed amendment. No real-data
-performance claim or full Batch 3 completion should be inferred in the meantime.
+Reconcile the image/annotation source and document any necessary amendment
+before sealing inputs and running the 80-record suite and fresh-feature repeat.
+Check [dataset evidence](dataset-evidence.md) for provider layout, attribution,
+and commands. New source, labels, parameters, exclusions, or tolerances require a
+disclosed amendment. No real-data performance claim or full Batch 3 completion
+should be inferred in the meantime.
 
 Batch 4 still covers public-release documentation, CI, type checking, ownership,
 license/attribution decisions, and final asset/history review. The development-only

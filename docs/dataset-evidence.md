@@ -43,14 +43,19 @@ from the absence of identical bytes.
 
 ## Current input blocker
 
-During preparation, 228 of 516 IDRiD images and all 485 images in the selected
-RIM-ONE partition were macOS cloud-only placeholders. An attempted image-hash
-inventory stalled and was terminated before any benchmark fitting. The runner
-now detects that state and requests offline files before reading them. There is
-no completed real input seal and no real-data outcome to report. Restoring those
-files permits the prespecified audit; it does not require changing the design.
+During preparation, cloud-only files prevented hashing. All 516 IDRiD images
+and 485 selected RIM-ONE images are now available locally. The prespecified audit
+then failed before fitting: the IDRiD copy contains six pairs of byte-identical
+images, including one pair spanning provider training and test partitions.
+Four pairs have conflicting DR or DME labels. RIM-ONE has no exact-byte duplicates.
+See the [input-audit record](batch-3-input-audit.md) for checks and limitations.
 
-Once images are fully available locally:
+There is no completed real input seal and no real-data outcome to report.
+Reconcile image/annotation provenance before proceeding. Any exclusion,
+relabeling, grouping, or partition change requires a disclosed protocol amendment
+and a new freeze before real model fitting. Do not bypass the duplicate check.
+
+The commands remain the prescribed workflow once the input issue is resolved:
 
 ```sh
 uv sync --locked --extra imaging --extra plots

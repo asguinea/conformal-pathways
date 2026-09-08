@@ -85,7 +85,8 @@ integrity, and complete pipeline exports. See [Batch 2 verification](batch-2-ver
 Test success does not establish a clinical claim, dataset exchangeability, or
 superiority over a baseline. The [Batch 3 protocol](experiment-protocol.md) and
 [results](batch-3-results.md) define the synthetic benchmark scope. Real-image
-reproduction remains blocked by external input availability; multi-platform CI,
+reproduction remains blocked by the [input audit](batch-3-input-audit.md), which
+found duplicate images and conflicting labels after the files became local; multi-platform CI,
 typing, and release checks remain Batch 4 work.
 
 ## Synthetic benchmark reproduction from a wheel

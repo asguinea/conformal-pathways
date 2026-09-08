@@ -33,8 +33,10 @@ recomputable records. Update the claim register only with actual evidence.
 
 Acceptance: a clean run regenerates each promoted result within declared
 tolerances, with no unsupported quantitative claim. The frozen protocol and
-synthetic evidence reproduce from an isolated installed wheel; the 80-record real-data extension remains open
-until external images are fully local and their input seal is verified. See
+synthetic evidence reproduce from an isolated installed wheel; the 80-record
+real-data extension remains open. Images are now local, but duplicate images and
+conflicting IDRiD labels prevent sealing the inputs. See the
+[input audit](batch-3-input-audit.md),
 [verification](batch-3-verification.md) and [results and limitations](batch-3-results.md).
 
 ## Batch 4 — Public release preparation
