@@ -5,3 +5,5 @@ recursive-include scripts *.py
 recursive-include tests *.py
 global-exclude *.py[cod]
 global-exclude .DS_Store
+recursive-include experiments *.json
+recursive-include evidence *.md *.json *.jsonl *.csv *.svg *.png

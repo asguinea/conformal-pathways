@@ -80,7 +80,8 @@ class IDRiDBuilder(DatasetBuilder):
                 raise ValueError("invalid macular-edema risk grade")
             records.append(
                 {
-                    "sample_id": sample_id,
+                    "sample_id": f"idrid/{row['split_hint']}/{sample_id}",
+                    "source_sample_id": sample_id,
                     "image_path": as_root_relative(root, image_path),
                     "dataset_source": self.name,
                     "dr_severity": normalize_dr_severity(row["Retinopathy grade"]),
@@ -102,6 +103,7 @@ class IDRiDBuilder(DatasetBuilder):
             records,
             columns=[
                 "sample_id",
+                "source_sample_id",
                 "image_path",
                 "dataset_source",
                 "dr_severity",

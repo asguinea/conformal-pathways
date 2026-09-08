@@ -55,7 +55,7 @@ contract. CPU checks do not establish accelerator reproducibility.
 ```sh
 uv sync --locked
 uv run --locked python -m build --no-isolation
-uv run --locked python scripts/verify_distribution.py dist/conformal_pathways-0.2.0.dev0-py3-none-any.whl
+uv run --locked python scripts/verify_distribution.py dist/conformal_pathways-0.3.0.dev0-py3-none-any.whl
 ```
 
 This builds both a source distribution and a wheel with build tools installed

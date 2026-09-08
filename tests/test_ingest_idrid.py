@@ -32,8 +32,8 @@ def test_idrid_builder_manifest_and_dme_mapping(tmp_path) -> None:
     assert len(manifest) == 2
     assert set(["sample_id", "dr_severity", "dme_positive"]).issubset(manifest.columns)
 
-    row1 = manifest.loc[manifest["sample_id"] == "IDRiD_001"].iloc[0]
-    row2 = manifest.loc[manifest["sample_id"] == "IDRiD_002"].iloc[0]
+    row1 = manifest.loc[manifest["sample_id"] == "idrid/train/IDRiD_001"].iloc[0]
+    row2 = manifest.loc[manifest["sample_id"] == "idrid/test/IDRiD_002"].iloc[0]
     assert row1["dr_severity"] == 2
     assert bool(row1["dme_positive"]) is True
     assert bool(row2["dme_positive"]) is False
@@ -57,3 +57,23 @@ def test_idrid_rejects_fractional_risk_grade(tmp_path):
             training_labels_csv=labels,
             dry_run=True,
         )
+
+
+def test_idrid_reused_image_number_across_partitions_is_namespaced(tmp_path):
+    for split in ("train", "test"):
+        (tmp_path / split).mkdir()
+        (tmp_path / split / "IDRiD_001.jpg").write_bytes(split.encode())
+        (tmp_path / f"{split}.csv").write_text(
+            "Image name,Retinopathy grade,Risk of macular edema\nIDRiD_001,2,0\n"
+        )
+    result = IDRiDBuilder().build_manifest(
+        tmp_path,
+        tmp_path / "out.csv",
+        dry_run=True,
+        training_images_dir="train",
+        testing_images_dir="test",
+        training_labels_csv="train.csv",
+        testing_labels_csv="test.csv",
+    )
+    assert set(result["df"]["sample_id"]) == {"idrid/train/IDRiD_001", "idrid/test/IDRiD_001"}
+    assert result["df"]["source_sample_id"].tolist() == ["IDRiD_001", "IDRiD_001"]

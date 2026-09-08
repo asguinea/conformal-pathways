@@ -18,7 +18,7 @@ def test_demo_is_deterministic_and_writes_no_files(workflow, tmp_path, monkeypat
     assert capsys.readouterr().out == first
     payload = json.loads(first)
     assert payload["verification_scope"] == "installation_smoke_only"
-    assert payload["scientific_validation"] == "benchmark_pending"
+    assert payload["scientific_validation"] == "see_claim_register"
     assert payload["project_version"] == __version__
     assert payload["config"]["workflow"] == workflow
     assert payload["experimental_metrics"]

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "conformal-pathways"
-version = "0.2.0.dev0"
+version = "0.3.0.dev0"
 description = "Experimental tools for uncertainty-aware decision workflows"
 readme = "README.md"
 requires-python = ">=3.11,<3.15"

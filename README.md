@@ -6,8 +6,8 @@ The project provides small branching workflows, calibration and path-filtering
 code, dataset adapters, and an evaluation harness. Its first examples use
 illustrative retinal decision workflows with three stages.
 
-**Development status: correctness batch implemented and tested; benchmark evidence pending.**
-Version 0.2.0.dev0 evaluates complete action sequences from explicitly declared
+**Development status: correctness checks pass; reproducible evidence batch in progress.**
+Version 0.3.0.dev0 evaluates complete action sequences from explicitly declared
 entry observations. Hypothetical tests do not reveal retrospective labels.
 Calibration uses one maximum reference-path score per declared group and stage;
 metrics distinguish unavailable labels, abstention, and rule violations.
@@ -45,6 +45,7 @@ dependencies and installation from a wheel.
 
 ```text
 src/conformal_pathways/
+  benchmarks/   Frozen protocols, paired experiments, and evidence verification
   data/         Sample records, manifest loading, group splits
   workflows/    States, actions, and illustrative branching workflows
   models/       Class-prior and optional embedding predictors
@@ -72,6 +73,8 @@ checker. Its outputs are not measurements of clinical outcomes.
 - [Four-batch roadmap](docs/roadmap.md)
 - [Batch 1 verification](docs/batch-1-verification.md)
 - [Batch 2 verification](docs/batch-2-verification.md)
+- [Experiment protocol](docs/experiment-protocol.md)
+- [Dataset evidence and exclusions](docs/dataset-evidence.md)
 
 No dataset images, annotations, embeddings, trained models, or benchmark outputs
 are distributed here. Code ownership and the project license remain to be

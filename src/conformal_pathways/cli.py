@@ -56,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
         "schema_version": 2,
         "project_version": __version__,
         "verification_scope": "installation_smoke_only",
-        "scientific_validation": "benchmark_pending",
+        "scientific_validation": "see_claim_register",
         "notice": (
             "Synthetic class-prior demonstration of the entry-observation toy protocol. "
             "These values do not establish predictive performance or clinical safety."

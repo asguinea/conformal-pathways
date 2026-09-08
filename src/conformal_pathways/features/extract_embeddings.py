@@ -102,6 +102,9 @@ def extract_embeddings_from_manifest(
     }
     request = {
         "architecture": "resnet50",
+        "torch_threads": torch.get_num_threads(),
+        "torch_interop_threads": torch.get_num_interop_threads(),
+        "deterministic_algorithms": torch.are_deterministic_algorithms_enabled(),
         "weights": weights,
         "random_seed": random_seed,
         "transform": repr(transform),

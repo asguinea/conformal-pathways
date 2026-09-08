@@ -24,6 +24,7 @@ from conformal_pathways.eval.metrics import (
     compute_chosen_path_metrics,
     compute_sample_metrics,
     compute_topk_safety_metrics,
+    pathway_key,
 )
 from conformal_pathways.eval.per_sample_export import (
     _sample_lookup,
@@ -64,6 +65,7 @@ def evaluate_experiment(
     w_u=None,
     w_r=None,
     split_protocol="random_groups",
+    audit_paths=False,
 ):
     validate_splits(samples, splits)
     if split_protocol not in {"random_groups", "official_partition", "explicit_repartition"}:
@@ -151,6 +153,17 @@ def evaluate_experiment(
         start = perf_counter()
         pi = build_prediction_set(workflow, sample, predictor, workflow.name, thresholds, w_u, w_r)
         row = compute_sample_metrics(workflow, workflow.name, sample, pi)
+        if audit_paths:
+            row["prediction_set_sha256"] = hashlib.sha256(
+                json.dumps(sorted(pathway_key(p) for p in pi), sort_keys=True).encode()
+            ).hexdigest()
+            from conformal_pathways.eval.selection_policies import select_pathway
+
+            for policy in policies:
+                selected = select_pathway(pi, workflow, sample, predictor, policy)
+                row[f"chosen_path_sha256__{policy}"] = hashlib.sha256(
+                    json.dumps(pathway_key(selected) if selected else None, sort_keys=True).encode()
+                ).hexdigest()
         chosen = compute_chosen_path_metrics(
             pi, workflow, workflow.name, sample, predictor, policies
         )

@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "name": "batch3-v1",
+  "algorithm_version": "entry-pathways-v2",
+  "rule_version": "toy-rules-v2",
+  "workflows": [
+    "dr_workflow",
+    "glaucoma_workflow"
+  ],
+  "variants": [
+    "main",
+    "model_only",
+    "rules_only",
+    "no_conformal"
+  ],
+  "selection_policies": [
+    "observed_rules_first",
+    "min_total_score"
+  ],
+  "alpha_allocation": "uniform",
+  "primary_alpha": 0.1,
+  "synthetic": {
+    "seed_base": 2026090800,
+    "members_per_group": 2,
+    "dr_prior": [
+      0.3,
+      0.15,
+      0.25,
+      0.15,
+      0.15
+    ],
+    "dr_signal_centers": [
+      -2,
+      -1,
+      0,
+      1,
+      2
+    ],
+    "dr_signal_sd": 0.8,
+    "dr_dme_probability": [
+      0.03,
+      0.1,
+      0.3,
+      0.6,
+      0.8
+    ],
+    "glaucoma_high_probability": 0.35,
+    "glaucoma_signal_centers": [
+      -1,
+      1
+    ],
+    "glaucoma_signal_sd": 1.0,
+    "scenarios": [
+      {
+        "name": "iid",
+        "repetitions": 128,
+        "train_groups": 50,
+        "cal_groups": 99,
+        "test_groups": 1,
+        "missing_probability": 0.0,
+        "alphas": [
+          0.05,
+          0.1,
+          0.2
+        ],
+        "models": [
+          "class_prior",
+          "known_signal"
+        ]
+      },
+      {
+        "name": "missing_labels",
+        "repetitions": 64,
+        "train_groups": 50,
+        "cal_groups": 99,
+        "test_groups": 1,
+        "missing_probability": 0.2,
+        "alphas": [
+          0.1
+        ],
+        "models": [
+          "known_signal"
+        ]
+      },
+      {
+        "name": "tiny_calibration",
+        "repetitions": 16,
+        "train_groups": 50,
+        "cal_groups": 9,
+        "test_groups": 1,
+        "missing_probability": 0.0,
+        "alphas": [
+          0.1
+        ],
+        "models": [
+          "known_signal"
+        ]
+      }
+    ]
+  },
+  "real": {
+    "datasets": [
+      "idrid",
+      "rimone"
+    ],
+    "seeds": [
+      101,
+      202,
+      303,
+      404,
+      505
+    ],
+    "alphas": [
+      0.1
+    ],
+    "models": [
+      "class_prior",
+      "resnet50_logreg"
+    ],
+    "ratios": [
+      0.6,
+      0.2,
+      0.2
+    ],
+    "weights": "IMAGENET1K_V2",
+    "checkpoint_sha256": "11ad3fa62ca79e40addfd354a8ec4b7c75143b3038b8d2a807fbc68deab379ca",
+    "logreg_C": 1.0,
+    "device": "cpu",
+    "torch_threads": 2,
+    "batch_size": 16,
+    "num_workers": 0,
+    "expected_partitions": {
+      "idrid": {
+        "train": 413,
+        "test": 103
+      },
+      "rimone": {
+        "train": 339,
+        "test": 146
+      }
+    },
+    "annotation_sha256": {
+      "idrid_train": "789fb5a5aca296f6e01db9eb930cc41a063c681c284dbf3675628afc2a2d4ffe",
+      "idrid_test": "ced1cb8f66e126e98edde38a9b10843e6e8c3a76795b17dd57ca5abbff8ff602"
+    },
+    "input_lock": "batch3-inputs-v1.json"
+  },
+  "statistics": {
+    "confidence": 0.95,
+    "binary_interval": "wilson",
+    "bounded_mean_interval": "hoeffding",
+    "paired_unit": "independent_synthetic_repetition",
+    "real_uncertainty": "descriptive_seed_range_only"
+  },
+  "reproduction": {
+    "metrics": "exact",
+    "feature_atol": 1e-06,
+    "feature_rtol": 1e-06,
+    "threshold_atol": 1e-10,
+    "probability_atol": 1e-10
+  }
+}
