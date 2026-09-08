@@ -6,7 +6,7 @@ The project provides small branching workflows, calibration and path-filtering
 code, dataset adapters, and an evaluation harness. Its first examples use
 illustrative retinal decision workflows with three stages.
 
-**Development status: correctness checks pass; reproducible evidence batch in progress.**
+**Development status: synthetic evidence reproduced; real-image evaluation pending.**
 Version 0.3.0.dev0 evaluates complete action sequences from explicitly declared
 entry observations. Hypothetical tests do not reveal retrospective labels.
 Calibration uses one maximum reference-path score per declared group and stage;
@@ -16,7 +16,14 @@ The [method and conditional coverage argument](docs/method.md) define the exact
 inclusion event. The [toy rules](docs/toy-rules.md) are illustrative surrogates,
 with no validated clinical interpretation. Adaptive replanning and online
 coverage are outside this version's scope. See the [claim register](docs/claims.md)
-and [Batch 2 verification](docs/batch-2-verification.md).
+and [Batch 3 verification](docs/batch-3-verification.md).
+
+The [frozen synthetic benchmark](evidence/batch3-v1/README.md) contains 5,760
+comparison records, reproduced from a separately installed wheel with network
+access blocked. It supports mechanism checks under an invented sampling model.
+It does not establish an advantage for the combined score over the model-only
+baseline or clinical safety; see [results and limitations](docs/batch-3-results.md).
+Real-image runs await fully local dataset files.
 
 ## Quick start
 
@@ -75,8 +82,11 @@ checker. Its outputs are not measurements of clinical outcomes.
 - [Batch 2 verification](docs/batch-2-verification.md)
 - [Experiment protocol](docs/experiment-protocol.md)
 - [Dataset evidence and exclusions](docs/dataset-evidence.md)
+- [Batch 3 verification](docs/batch-3-verification.md)
+- [Synthetic results and limitations](docs/batch-3-results.md)
 
-No dataset images, annotations, embeddings, trained models, or benchmark outputs
-are distributed here. Code ownership and the project license remain to be
+The included evidence consists of synthetic summaries, plots, and provenance.
+No real dataset images, source annotations, embeddings, trained models, or raw
+experiment traces are distributed here. Code ownership and the project license remain to be
 confirmed before a public release; see the provenance inventory. This is a
 development project, not a clinical decision support product.

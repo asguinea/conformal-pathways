@@ -31,7 +31,8 @@ prevent Git publication or replace the release review.
 | Synthetic records / solid-color test images | Generated at runtime | No real participant records or downloaded imagery |
 | Real dataset images and annotations | No | Obtain independently under the relevant terms |
 | Dataset manifests, patient IDs, cached embeddings, model weights | No | Distribution rights and privacy review required before adding any derived asset |
-| Benchmark outputs and local result traces | No | Fresh evidence required under the corrected protocol |
+| Synthetic benchmark summaries, plots, and provenance | Yes | Generated under a frozen protocol; no real participant records. See [evidence](../evidence/batch3-v1/README.md) |
+| Raw experiment traces and any real-data derived outputs | No | Kept as local artifacts; independent rights/privacy review required before adding derived real-data assets |
 | Vendored third-party libraries | No | Installed from public registry; versions and hashes in `uv.lock` |
 
 ## Dataset adapters
@@ -42,11 +43,11 @@ sources, and permitted uses must be recorded before a dataset benchmark.
 
 | Adapter | Provenance entry point | Current label interpretation | Outstanding checks |
 | --- | --- | --- | --- |
-| IDRiD | [Provider portal](https://idrid.grand-challenge.org/) | Retinopathy grade; macular-edema risk converted to Boolean | Portal retrieval was unavailable during this inventory; verify terms and grading semantics. The converted risk label is a proxy, not an OCT result. |
+| IDRiD | [Provider portal](https://idrid.grand-challenge.org/) | Retinopathy grade; macular-edema risk converted to Boolean | Provider terms and grading semantics are recorded in [dataset evidence](dataset-evidence.md); complete image hashing and real runs await offline inputs. The risk label remains a proxy. |
 | Messidor-2 | [ADCIS](https://www.adcis.net/en/third-party/messidor2/) | Severity and binary adjudicated DME from a caller-supplied annotation CSV | Review image terms and the separate origin/terms of the actual annotation file. |
 | EyePACS | [Kaggle competition](https://www.kaggle.com/competitions/diabetic-retinopathy-detection) | Retinopathy grade; DME unavailable | Record exact source and accepted access terms; verify patient pairing from IDs. |
 | REFUGE | [Provider portal](https://refuge.grand-challenge.org/) | Folder labels mapped to illustrative high/low status | Portal retrieval was unavailable during this inventory; verify access terms and avoid interpreting a disease class as a clinical risk estimate. |
-| RIM-ONE DL | [Maintainer repository](https://github.com/miag-ull/rim-one-dl) | Folder labels mapped to illustrative high/low status | Verify dataset version, terms, participant grouping, and preservation of official partition hints. |
+| RIM-ONE DL | [Maintainer repository](https://github.com/miag-ull/rim-one-dl) | Folder labels mapped to illustrative high/low status | Terms and the planned provider partition are recorded in [dataset evidence](dataset-evidence.md). Image hashing and participant linkage remain unverified. |
 
 Provider links are provenance leads, not legal conclusions. Do not infer that
 public download availability permits redistribution. No real dataset was downloaded
@@ -61,7 +62,7 @@ for Batches 1 or 2.
 | PyTorch, torchvision, Pillow | Optional image processing and embeddings | `imaging` extra; review package notices separately from weights |
 | matplotlib | Optional plotting | `plots` extra; retain required notices for any redistributed dependency assets |
 | pytest, build, setuptools, wheel, Ruff | Development and build tools | Locked development group; not vendored in this repository |
-| torchvision ResNet-50 weights | Optional externally fetched model | Not included; exact weight identity, checksum, transform, and applicable training-data/weight terms remain to be recorded |
+| torchvision ResNet-50 weights | Optional externally fetched model | Not included; exact weight identity, checksum, and transform are recorded in [dataset evidence](dataset-evidence.md). Applicable training-data/weight terms remain part of release review |
 
 The [torchvision model documentation](https://docs.pytorch.org/vision/stable/models.html)
 distinguishes pretrained assets and their use conditions from library code.

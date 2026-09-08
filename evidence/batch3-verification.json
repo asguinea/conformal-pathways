@@ -1,0 +1,139 @@
+{
+  "clean_install": {
+    "checkout_revision": "c52269b5d60696777eaf19ccf9072b1d0ef9855c",
+    "execution": "installed_wheel_isolated_python_outside_clean_checkout",
+    "optional_dependencies": "absent",
+    "requirements_sha256": "3695d67c1df6c71b585551c4039d86356df77bc190dd99bf0f536ed2f46a6c56",
+    "socket_operations": "blocked_during_full_experiment",
+    "status": "completed_independent_run; comparison_required",
+    "wheel_sha256": "8e22ea8b1ac14b987e80c1fd6883ed0b773baf6648b533ab8d03c5f1d4bd2efe"
+  },
+  "comparison": {
+    "all_scientific_records_exact": true,
+    "features": [],
+    "metrics_and_cases": "exact",
+    "probabilities": "within_declared_tolerance",
+    "records": 5760,
+    "status": "passed",
+    "suite": "synthetic"
+  },
+  "date": "2026-09-08",
+  "distribution_verification": {
+    "checks": [
+      "wheel contains package and metadata only",
+      "locked core dependencies installed with hashes",
+      "package imported from isolated environment outside checkout",
+      "optional dependencies and original import namespace absent",
+      "both CLI entry points provide help",
+      "both workflows match between console, module, and socket-blocked runs",
+      "demo working directory remains empty"
+    ],
+    "frozen_python_files_matched": 64,
+    "platform": "Darwin arm64",
+    "python": "3.12.14",
+    "status": "passed",
+    "wheel": "conformal_pathways-0.3.0.dev0-py3-none-any.whl",
+    "wheel_sha256": "6feaaebbf5172d89aeafdf2197ae7c90cd8b0e1ce57f512c87ee49df85536645"
+  },
+  "evidence_regeneration": {
+    "paired_rows": 384,
+    "status": "passed",
+    "summary_rows": 448,
+    "trial_records": 5760
+  },
+  "format_check": "108_python_files_passed",
+  "freeze_source_revision": "355ad9cf262e28ec2a4ff91d3a0e730900037c5c",
+  "input_audit": {
+    "availability": {
+      "idrid": {
+        "cloud_only": 193,
+        "total": 516
+      },
+      "rimone": {
+        "cloud_only": 485,
+        "total": 485
+      }
+    },
+    "error": "193 cloud-only image files; make the dataset available offline first",
+    "error_type": "RuntimeError",
+    "status": "blocked_before_image_reads_and_model_fitting"
+  },
+  "limitations": [
+    "synthetic_mechanism_only",
+    "single_Darwin_arm64_host_Python_3.12",
+    "pointwise_intervals",
+    "no_real_image_benchmark_completed",
+    "no_clinical_or_superiority_claim",
+    "release_clearance_pending"
+  ],
+  "lint": "passed",
+  "original_project_snapshot": {
+    "changed_files": 0,
+    "files_checked": 97
+  },
+  "protocol_sha256": "0b4ab5976d3d2361722308ac9be76c80cfec3cb33347d303b9a3007f16c0d89c",
+  "runs": [
+    {
+      "elapsed_seconds": 117.1479949579807,
+      "environment": {
+        "machine": "arm64",
+        "packages": {
+          "conformal-pathways": "0.3.0.dev0",
+          "matplotlib": "3.11.1",
+          "numpy": "2.5.3",
+          "pandas": "3.0.5",
+          "pillow": "12.3.0",
+          "scikit-learn": "1.9.0",
+          "torch": "2.14.0",
+          "torchvision": "0.29.0"
+        },
+        "python": "3.12.14",
+        "system": "Darwin"
+      },
+      "finished_utc": "2026-09-08T14:25:03.757052+00:00",
+      "local_execution_manifest_sha256": "27757ce963ec06fce3d0fc68114e45a463d4178cab060d50a85990a5299705d8",
+      "name": "primary",
+      "records": 5760,
+      "started_utc": "2026-09-08T14:23:06.616793+00:00",
+      "status": "complete"
+    },
+    {
+      "elapsed_seconds": 143.48927899997216,
+      "environment": {
+        "machine": "arm64",
+        "packages": {
+          "conformal-pathways": "0.3.0.dev0",
+          "matplotlib": null,
+          "numpy": "2.5.3",
+          "pandas": "3.0.5",
+          "pillow": null,
+          "scikit-learn": null,
+          "torch": null,
+          "torchvision": null
+        },
+        "python": "3.12.14",
+        "system": "Darwin"
+      },
+      "finished_utc": "2026-09-08T14:26:39.647416+00:00",
+      "local_execution_manifest_sha256": "0826c6c47f664ca4b1f95c47bfe6e459117ab610a69992c3f2759df8c011240f",
+      "name": "isolated_wheel_repeat",
+      "records": 5760,
+      "started_utc": "2026-09-08T14:24:16.163170+00:00",
+      "status": "complete"
+    }
+  ],
+  "source_distribution_inspection": {
+    "evidence_files": 9,
+    "files": 146,
+    "unexpected_external_asset_paths": []
+  },
+  "source_sha256": "efd41dff47770bfb27ca9673abe9307e4811b71d9b6228998793caa51c8c77b2",
+  "status": "synthetic_verified_real_data_pending",
+  "tests": {
+    "elapsed_seconds": 12.13,
+    "failed": 0,
+    "passed": 375,
+    "warning_scope": "expected_missing_image_ingest_fixture",
+    "warnings": 1
+  }
+}

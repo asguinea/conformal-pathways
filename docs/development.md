@@ -83,5 +83,25 @@ Tests derived from the contract cover exact arithmetic, hidden-label
 perturbations, exhaustive toy rules, grouping, missingness, baselines, cache
 integrity, and complete pipeline exports. See [Batch 2 verification](batch-2-verification.md).
 Test success does not establish a clinical claim, dataset exchangeability, or
-superiority over a baseline. Full experiment reproduction, multi-platform CI,
-typing, and release checks remain in Batches 3 and 4.
+superiority over a baseline. The [Batch 3 protocol](experiment-protocol.md) and
+[results](batch-3-results.md) define the synthetic benchmark scope. Real-image
+reproduction remains blocked by external input availability; multi-platform CI,
+typing, and release checks remain Batch 4 work.
+
+## Synthetic benchmark reproduction from a wheel
+
+After building, run the committed verification script with a new output folder:
+
+```sh
+uv run --locked python scripts/reproduce_benchmark.py --wheel dist/conformal_pathways-0.3.0.dev0-py3-none-any.whl --out artifacts/batch3/isolated
+uv run --locked python -m conformal_pathways.benchmarks compare artifacts/batch3/primary/synthetic artifacts/batch3/isolated/synthetic
+```
+
+The script archives the requested Git revision (`HEAD` by default), installs a
+copy of the wheel with hashed core dependencies in a separate environment, checks
+that optional dependencies are absent, and runs the entire synthetic suite with
+Python socket operations blocked. The checkout, wheel, requirements, execution
+records, and environment remain local for inspection. Complete the primary run
+using the protocol commands first. Use the committed matching protocol/source;
+post-freeze scientific changes fail verification rather than silently changing
+the experiment. No real dataset or model weights are needed for this check.

@@ -23,7 +23,7 @@ tests expose the previous failures and pass after correction. Any intended
 guarantee has a precise event, justified assumptions, and a supporting argument.
 Unsupported capabilities are explicitly reduced or removed.
 
-## Batch 3 — Reproducible evidence
+## Batch 3 — Reproducible evidence (synthetic complete; real inputs blocked)
 
 Freeze a protocol and configurations. Run synthetic mechanism checks and any
 eligible dataset benchmarks from identified inputs. Record split membership,
@@ -32,7 +32,10 @@ failures. Produce uncertainty estimates and fair baseline comparisons from
 recomputable records. Update the claim register only with actual evidence.
 
 Acceptance: a clean run regenerates each promoted result within declared
-tolerances, with no unsupported quantitative claim.
+tolerances, with no unsupported quantitative claim. The frozen protocol and
+synthetic evidence reproduce from an isolated installed wheel; the 80-record real-data extension remains open
+until external images are fully local and their input seal is verified. See
+[verification](batch-3-verification.md) and [results and limitations](batch-3-results.md).
 
 ## Batch 4 — Public release preparation
 
