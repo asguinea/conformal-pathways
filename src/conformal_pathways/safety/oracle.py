@@ -1,101 +1,99 @@
+"""Versioned illustrative rules. These predicates do not measure clinical safety."""
+
 from __future__ import annotations
 
-from typing import Any
+from conformal_pathways.data.loaders import normalize_dr_severity, normalize_glaucoma_risk
 
-from conformal_pathways.workflows.core import Pathway, State
+RULE_VERSION = "toy-rules-v2"
 
 
-def pathway_contains_action(pathway: Pathway, name: str) -> bool:
+class MissingLabelError(ValueError):
+    pass
+
+
+def required_labels(workflow_name):
+    if workflow_name == "dr_workflow":
+        return ("dr_severity", "dme_positive")
+    if workflow_name == "glaucoma_workflow":
+        return ("glaucoma_risk",)
+    raise ValueError(f"Unsupported workflow {workflow_name!r}")
+
+
+def label_unavailability(workflow_name, labels):
+    keys = required_labels(workflow_name)
+    if workflow_name == "dr_workflow":
+        if labels.get("dr_severity") is not None:
+            normalize_dr_severity(labels["dr_severity"])
+        if labels.get("dme_positive") is not None and not isinstance(labels["dme_positive"], bool):
+            raise ValueError("dme_positive must be a normalized Boolean")
+    elif labels.get("glaucoma_risk") is not None:
+        normalize_glaucoma_risk(labels["glaucoma_risk"])
+    missing = [key for key in keys if labels.get(key) is None]
+    return "missing:" + ",".join(missing) if missing else None
+
+
+def severe_dr(value):
+    return normalize_dr_severity(value) in {3, 4, "severe"}
+
+
+def pathway_contains_action(pathway, name):
     return any(action.name == name for action in pathway.actions)
 
 
-def is_safe_dr(sample_meta: dict[str, Any], final_state: State, pathway: Pathway) -> bool:
-    dme_positive = sample_meta.get("dme_positive") is True
+def is_safe_dr(sample_meta, final_state, pathway):
+    from conformal_pathways.workflows import DRWorkflow
 
-    if dme_positive and not pathway_contains_action(pathway, "order_OCT"):
+    if len(pathway) != 3:
+        raise ValueError("rule evaluation requires a complete pathway")
+    final_state = DRWorkflow().rollout({}, pathway)
+    if label_unavailability("dr_workflow", sample_meta):
+        return None
+    positive = sample_meta["dme_positive"]
+    severe = severe_dr(sample_meta["dr_severity"])
+    management = final_state.get("management")
+    weeks = final_state.get("followup_weeks")
+    if positive and not pathway_contains_action(pathway, "order_OCT"):
         return False
-    if dme_positive and final_state.get("followup_weeks") == 24:
+    if (positive or severe) and (management == "monitor" or weeks == 24):
         return False
-    if dme_positive and final_state.get("management") == "monitor":
-        return False
-    if sample_meta.get("dme_positive") is False and final_state.get("management") == "anti_VEGF":
-        return False
-
-    return True
-
-
-def is_safe_glaucoma(
-    sample_meta: dict[str, Any],
-    final_state: State,
-    pathway: Pathway,
-) -> bool:
-    del sample_meta, pathway
-    if (
-        final_state.get("glaucoma_risk") == "high"
-        and final_state.get("followup_weeks") == 24
-        and final_state.get("management") == "monitor"
-        and final_state.get("tests_ordered") == []
-    ):
+    if not positive and management == "anti_VEGF":
         return False
     return True
 
 
-def is_guideline_consistent_dr(
-    sample_meta: dict[str, Any],
-    final_state: State,
-    pathway: Pathway,
-) -> bool:
-    if is_safe_dr(sample_meta, final_state, pathway):
-        return True
+def is_safe_glaucoma(sample_meta, final_state, pathway):
+    from conformal_pathways.workflows import GlaucomaWorkflow
 
-    # Looser than strict safety: allow anti-VEGF despite dme_positive=False.
-    return (
-        sample_meta.get("dme_positive") is False
-        and final_state.get("management") == "anti_VEGF"
-    )
-
-
-def is_guideline_consistent_glaucoma(
-    sample_meta: dict[str, Any],
-    final_state: State,
-    pathway: Pathway,
-) -> bool:
-    if is_safe_glaucoma(sample_meta, final_state, pathway):
-        return True
-
-    # Looser than strict safety: allow this pattern when testing is not feasible.
-    return (
-        sample_meta.get("unable_to_test") is True
-        and final_state.get("glaucoma_risk") == "high"
-        and final_state.get("followup_weeks") == 24
-        and final_state.get("management") == "monitor"
-        and final_state.get("tests_ordered") == []
-    )
+    if len(pathway) != 3:
+        raise ValueError("rule evaluation requires a complete pathway")
+    final_state = GlaucomaWorkflow().rollout({}, pathway)
+    if label_unavailability("glaucoma_workflow", sample_meta):
+        return None
+    high = normalize_glaucoma_risk(sample_meta["glaucoma_risk"]) == "high"
+    if high:
+        return (
+            pathway_contains_action(pathway, "order_extra_tests")
+            and final_state.get("management") != "monitor"
+            and final_state.get("followup_weeks") != 24
+        )
+    return final_state.get("management") != "treat"
 
 
-def is_safe(
-    workflow_name: str,
-    sample_meta: dict[str, Any],
-    final_state: State,
-    pathway: Pathway,
-) -> bool:
+def is_safe(workflow_name, sample_meta, final_state, pathway):
     if workflow_name == "dr_workflow":
         return is_safe_dr(sample_meta, final_state, pathway)
     if workflow_name == "glaucoma_workflow":
         return is_safe_glaucoma(sample_meta, final_state, pathway)
-    raise ValueError(f"Unsupported workflow '{workflow_name}' for safety dispatch")
+    raise ValueError(f"Unsupported workflow {workflow_name!r}")
 
 
-def is_guideline_consistent(
-    workflow_name: str,
-    sample_meta: dict[str, Any],
-    final_state: State,
-    pathway: Pathway,
-) -> bool:
-    if workflow_name == "dr_workflow":
-        return is_guideline_consistent_dr(sample_meta, final_state, pathway)
-    if workflow_name == "glaucoma_workflow":
-        return is_guideline_consistent_glaucoma(sample_meta, final_state, pathway)
-    raise ValueError(
-        f"Unsupported workflow '{workflow_name}' for guideline-consistency dispatch"
-    )
+def is_guideline_consistent(*args, **kwargs):
+    raise ValueError("guideline mode removed; only explicitly defined toy-rules-v2 are supported")
+
+
+def is_guideline_consistent_dr(*args, **kwargs):
+    return is_guideline_consistent(*args, **kwargs)
+
+
+def is_guideline_consistent_glaucoma(*args, **kwargs):
+    return is_guideline_consistent(*args, **kwargs)

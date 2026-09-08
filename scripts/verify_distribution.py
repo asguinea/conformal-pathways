@@ -123,7 +123,7 @@ for module in ("torch", "torchvision", "sklearn", "matplotlib", "PIL", "pytest")
             )
             assert output == module_output
             payload = json.loads(output)
-            assert payload["scientific_validation"] == "pending"
+            assert payload["scientific_validation"] == "benchmark_pending"
             assert payload["verification_scope"] == "installation_smoke_only"
             assert payload["config"]["workflow"] == workflow
             offline_probe = """

@@ -26,8 +26,12 @@ def _dr_sample() -> Sample:
 
 def test_iter_pathways_returns_expected_count() -> None:
     pi = [
-        Pathway(actions=[Action("order_OCT"), Action("refer_retina"), Action("followup", {"weeks": 4})]),
-        Pathway(actions=[Action("order_OCT"), Action("monitor"), Action("followup", {"weeks": 12})]),
+        Pathway(
+            actions=[Action("order_OCT"), Action("refer_retina"), Action("followup", {"weeks": 4})]
+        ),
+        Pathway(
+            actions=[Action("order_OCT"), Action("monitor"), Action("followup", {"weeks": 12})]
+        ),
     ]
     assert len(list(iter_pathways(pi))) == 2
 
@@ -39,12 +43,20 @@ def test_select_pathway_returns_retained_member_and_is_deterministic() -> None:
     workflow = DRWorkflow()
     sample = _dr_sample()
     pi = [
-        Pathway(actions=[Action("order_OCT"), Action("refer_retina"), Action("followup", {"weeks": 4})]),
-        Pathway(actions=[Action("order_OCT"), Action("monitor"), Action("followup", {"weeks": 12})]),
+        Pathway(
+            actions=[Action("order_OCT"), Action("refer_retina"), Action("followup", {"weeks": 4})]
+        ),
+        Pathway(
+            actions=[Action("order_OCT"), Action("monitor"), Action("followup", {"weeks": 12})]
+        ),
     ]
 
-    selected_1 = select_pathway(pi=pi, workflow=workflow, sample=sample, policy="guideline_first")
-    selected_2 = select_pathway(pi=pi, workflow=workflow, sample=sample, policy="guideline_first")
+    selected_1 = select_pathway(
+        pi=pi, workflow=workflow, sample=sample, policy="observed_rules_first"
+    )
+    selected_2 = select_pathway(
+        pi=pi, workflow=workflow, sample=sample, policy="observed_rules_first"
+    )
 
     assert selected_1 in pi
     assert selected_2 in pi
@@ -83,7 +95,7 @@ def test_min_rule_penalty_prefers_lower_rule_violations() -> None:
 
 def test_normalize_selection_policies_parsing() -> None:
     assert normalize_selection_policies("") == []
-    assert normalize_selection_policies("guideline_first,min_rule_penalty") == [
-        "guideline_first",
+    assert normalize_selection_policies("observed_rules_first,min_rule_penalty") == [
+        "observed_rules_first",
         "min_rule_penalty",
     ]

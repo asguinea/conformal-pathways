@@ -3,8 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from conformal_pathways.safety import enumerate_all_pathways, is_guideline_consistent, is_safe, oracle_pathway
-from conformal_pathways.safety.patterns import DR_UNSAFE_PATTERNS_STRICT, GLAUCOMA_UNSAFE_PATTERNS_STRICT
+from conformal_pathways.safety import enumerate_all_pathways, is_safe, oracle_pathway
+from conformal_pathways.safety.patterns import (
+    DR_UNSAFE_PATTERNS_STRICT,
+    GLAUCOMA_UNSAFE_PATTERNS_STRICT,
+)
 from conformal_pathways.workflows.dr import DRWorkflow
 from conformal_pathways.workflows.glaucoma import GlaucomaWorkflow
 
@@ -15,7 +18,6 @@ class OracleCaseResult:
     sample_meta: dict[str, Any]
     pathway_count: int
     strict_safe_count: int
-    guideline_consistent_count: int
     oracle_action_names: list[str]
     oracle_followup_weeks: int | None
     oracle_is_safe: bool
@@ -25,13 +27,10 @@ def evaluate_oracle_case(workflow, sample_meta: dict[str, Any]) -> OracleCaseRes
     pathways = enumerate_all_pathways(workflow)
 
     strict_safe_count = 0
-    guideline_consistent_count = 0
     for pathway in pathways:
         final_state = workflow.rollout(sample_meta, pathway)
         if is_safe(workflow.name, sample_meta, final_state, pathway):
             strict_safe_count += 1
-        if is_guideline_consistent(workflow.name, sample_meta, final_state, pathway):
-            guideline_consistent_count += 1
 
     oracle = oracle_pathway(workflow, sample_meta, safety_mode="strict")
     oracle_final_state = workflow.rollout(sample_meta, oracle)
@@ -42,7 +41,6 @@ def evaluate_oracle_case(workflow, sample_meta: dict[str, Any]) -> OracleCaseRes
         sample_meta=sample_meta,
         pathway_count=len(pathways),
         strict_safe_count=strict_safe_count,
-        guideline_consistent_count=guideline_consistent_count,
         oracle_action_names=oracle.to_names(),
         oracle_followup_weeks=oracle_final_state.get("followup_weeks"),
         oracle_is_safe=oracle_is_safe,
@@ -65,12 +63,12 @@ def demo_cases() -> list[tuple[object, dict[str, Any]]]:
 
 
 def run_demo() -> list[OracleCaseResult]:
-    print("DR strict unsafe patterns:")
+    print("Illustrative rules only. DR violation patterns:")
     for pattern in DR_UNSAFE_PATTERNS_STRICT:
         print(f"- {pattern}")
     print("")
 
-    print("Glaucoma strict unsafe patterns:")
+    print("Glaucoma toy-rule violation patterns:")
     for pattern in GLAUCOMA_UNSAFE_PATTERNS_STRICT:
         print(f"- {pattern}")
     print("")
@@ -82,7 +80,6 @@ def run_demo() -> list[OracleCaseResult]:
         print(f"Case: {result.workflow_name} meta={result.sample_meta}")
         print(f"  pathways: {result.pathway_count}")
         print(f"  strict-safe: {result.strict_safe_count}")
-        print(f"  guideline-consistent: {result.guideline_consistent_count}")
         print(
             "  oracle: "
             f"actions={result.oracle_action_names}, "

@@ -45,3 +45,15 @@ def test_messidor2_builder_manifest(tmp_path) -> None:
     assert row_jpg["image_path"].lower().endswith("im000012.jpg")
     assert row_png["dataset_source"] == "messidor2"
     assert "adjudicated_gradable" in manifest.columns
+
+
+def test_messidor_rejects_fractional_labels(tmp_path):
+    import pytest
+
+    (tmp_path / "case.jpg").write_bytes(b"image")
+    labels = tmp_path / "labels.csv"
+    labels.write_text("id_code,diagnosis,adjudicated_dme,adjudicated_gradable\ncase.jpg,1.5,0,1\n")
+    with pytest.raises(ValueError, match="invalid"):
+        Messidor2Builder().build_manifest(
+            tmp_path, tmp_path / "out.csv", images_dir=".", labels_csv=labels, dry_run=True
+        )

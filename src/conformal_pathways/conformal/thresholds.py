@@ -1,116 +1,72 @@
 from __future__ import annotations
 
 import math
-import statistics
+from decimal import ROUND_CEILING, Decimal
 
 
 def allocate_alpha(
     alpha: float,
     T: int,
-    mode: str,
+    mode: str = "uniform",
     stage_score_variances: dict[int, float] | None = None,
 ) -> dict[int, float]:
-    if not (0.0 < alpha < 1.0):
-        raise ValueError("alpha must satisfy 0 < alpha < 1")
-    if T < 1:
-        raise ValueError("T must be >= 1")
-
+    if isinstance(alpha, bool) or not math.isfinite(alpha) or not 0 <= alpha < 1:
+        raise ValueError("alpha must satisfy 0 <= alpha < 1")
+    if isinstance(T, bool) or not isinstance(T, int) or T < 1:
+        raise ValueError("T must be a positive integer")
+    if stage_score_variances is not None or mode == "variance_weighted":
+        raise ValueError(
+            "variance_weighted allocation is removed: budgets must be fixed independently of calibration"
+        )
     if mode == "uniform":
-        alpha_by_stage = {stage: alpha / T for stage in range(1, T + 1)}
-    elif mode == "front_loaded":
+        weights = None
+    elif mode in {"front_loaded", "back_loaded"}:
         if T != 3:
-            raise ValueError(
-                "front_loaded alpha allocation currently supports only T=3"
-            )
-        alpha_by_stage = {
-            1: 0.6 * alpha,
-            2: 0.3 * alpha,
-            3: 0.1 * alpha,
-        }
-    elif mode == "back_loaded":
-        if T != 3:
-            raise ValueError(
-                "back_loaded alpha allocation currently supports only T=3"
-            )
-        alpha_by_stage = {
-            1: 0.2 * alpha,
-            2: 0.3 * alpha,
-            3: 0.5 * alpha,
-        }
-    elif mode == "variance_weighted":
-        if stage_score_variances is None:
-            raise ValueError("stage_score_variances is required for variance_weighted mode")
-        expected_keys = set(range(1, T + 1))
-        if set(stage_score_variances) != expected_keys:
-            raise ValueError(
-                f"stage_score_variances keys must be {expected_keys}, got {set(stage_score_variances)}"
-            )
-        eps = 1e-12
-        weights = {
-            stage: float(stage_score_variances[stage]) + eps for stage in range(1, T + 1)
-        }
-        total_weight = sum(weights.values())
-        alpha_by_stage = {
-            stage: alpha * weights[stage] / total_weight for stage in range(1, T + 1)
-        }
+            raise ValueError(f"{mode} requires T=3")
+        weights = [0.6, 0.3, 0.1] if mode == "front_loaded" else [0.2, 0.3, 0.5]
     else:
-        raise ValueError(f"Unsupported mode '{mode}'")
-
-    if not math.isclose(sum(alpha_by_stage.values()), alpha, rel_tol=1e-9, abs_tol=1e-12):
-        raise ValueError("allocated alpha does not sum to alpha")
-
-    return alpha_by_stage
+        raise ValueError(f"Unsupported mode {mode!r}")
+    total_alpha = Decimal(str(alpha))
+    exact = (
+        [total_alpha / T] * T
+        if weights is None
+        else [total_alpha * Decimal(str(w)) for w in weights]
+    )
+    budgets = {}
+    for i, value in enumerate(exact, 1):
+        rounded = float(value)
+        budgets[i] = math.nextafter(rounded, 0.0) if Decimal(str(rounded)) > value else rounded
+    # Compare the decimal values actually passed to the quantile routine. Binary
+    # summation of three 0.1 values must not create a spurious budget reduction.
+    while sum(Decimal(str(v)) for v in budgets.values()) > total_alpha:
+        largest = max(budgets, key=budgets.get)
+        budgets[largest] = math.nextafter(budgets[largest], 0.0)
+    return budgets
 
 
 def conformal_quantile(scores: list[float], alpha_t: float) -> float:
     if not scores:
         raise ValueError("scores must be non-empty")
-    if not (0.0 < alpha_t < 1.0):
-        raise ValueError("alpha_t must satisfy 0 < alpha_t < 1")
-    if any(math.isnan(score) for score in scores):
-        raise ValueError("scores must not contain NaN")
-
-    scores_sorted = sorted(scores)
-    n = len(scores_sorted)
-    k = math.ceil((n + 1) * (1.0 - alpha_t))
-    k = min(max(k, 1), n)
-    return scores_sorted[k - 1]
+    if isinstance(alpha_t, bool) or not math.isfinite(alpha_t) or not 0 <= alpha_t < 1:
+        raise ValueError("alpha_t must satisfy 0 <= alpha_t < 1")
+    if any(isinstance(s, bool) or not math.isfinite(s) for s in scores):
+        raise ValueError("calibration scores must be finite numbers")
+    # Decimal spelling avoids erroneous extra ranks at e.g. 5 * (1 - 0.8).
+    rank = int(
+        (Decimal(len(scores) + 1) * (1 - Decimal(str(alpha_t)))).to_integral_value(
+            rounding=ROUND_CEILING
+        )
+    )
+    return math.inf if rank > len(scores) else float(sorted(scores)[rank - 1])
 
 
 def compute_stage_thresholds(
-    scores_by_stage: dict[int, list[float]],
-    alpha: float,
-    mode: str = "uniform",
+    scores_by_stage: dict[int, list[float]], alpha: float, mode: str = "uniform"
 ) -> dict[int, float]:
     T = len(scores_by_stage)
-    if T < 1:
-        raise ValueError("scores_by_stage must contain at least one stage")
-
-    expected_keys = set(range(1, T + 1))
-    if set(scores_by_stage) != expected_keys:
-        raise ValueError(
-            f"scores_by_stage keys must be {expected_keys}, got {set(scores_by_stage)}"
-        )
-
-    stage_score_variances: dict[int, float] | None = None
-    if mode == "variance_weighted":
-        stage_score_variances = {}
-        for stage in range(1, T + 1):
-            stage_scores = scores_by_stage[stage]
-            if any(math.isnan(score) for score in stage_scores):
-                raise ValueError(f"scores for stage {stage} contain NaN")
-            stage_score_variances[stage] = (
-                statistics.pvariance(stage_scores) if len(stage_scores) > 1 else 0.0
-            )
-
-    alpha_by_stage = allocate_alpha(
-        alpha=alpha,
-        T=T,
-        mode=mode,
-        stage_score_variances=stage_score_variances,
-    )
-
-    return {
-        stage: conformal_quantile(scores_by_stage[stage], alpha_by_stage[stage])
-        for stage in range(1, T + 1)
-    }
+    if T < 1 or set(scores_by_stage) != set(range(1, T + 1)):
+        raise ValueError("scores must contain consecutive stages starting at 1")
+    if len({len(v) for v in scores_by_stage.values()}) != 1:
+        raise ValueError("each stage must contain the same calibration units")
+    budgets = allocate_alpha(alpha, T, mode)
+    return {t: conformal_quantile(values, budgets[t]) for t, values in scores_by_stage.items()}

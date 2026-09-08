@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any
-import warnings
 
 import pandas as pd
 
+from conformal_pathways.data.loaders import normalize_dr_severity
 from conformal_pathways.ingest.base import DatasetBuilder, as_root_relative, resolve_image_file
 
 
@@ -50,7 +51,7 @@ class EyePACSBuilder(DatasetBuilder):
                     "sample_id": sample_id,
                     "image_path": as_root_relative(root, image_path),
                     "dataset_source": self.name,
-                    "dr_severity": int(row["level"]),
+                    "dr_severity": normalize_dr_severity(row["level"]),
                     "dme_positive": None,
                     "patient_id": patient_id,
                     "eye_id": eye_id,

@@ -15,7 +15,9 @@ def _parse_csv_list(value: str, cast) -> list:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Alpha-allocation ablation runner.")
-    parser.add_argument("--workflow_name", required=True, choices=["dr_workflow", "glaucoma_workflow"])
+    parser.add_argument(
+        "--workflow_name", required=True, choices=["dr_workflow", "glaucoma_workflow"]
+    )
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--dataset_root", required=True)
     parser.add_argument("--embeddings_out_path", required=True)
@@ -26,7 +28,7 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--out_csv", required=True)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--prefer_mps", action=argparse.BooleanOptionalAction, default=True)
-    parser.add_argument("--filter_dme_subset", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--filter_dme_subset", action=argparse.BooleanOptionalAction, default=False)
     return parser
 
 
@@ -42,7 +44,7 @@ def run_ablation(
     out_csv: str,
     batch_size: int = 32,
     prefer_mps: bool = True,
-    filter_dme_subset: bool = True,
+    filter_dme_subset: bool = False,
 ) -> str:
     out_path = Path(out_csv)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -60,7 +62,7 @@ def run_ablation(
         batch_size=batch_size,
         prefer_mps=prefer_mps,
         filter_dme_subset=filter_dme_subset,
-        alpha_allocations="uniform,variance_weighted,front_loaded,back_loaded",
+        alpha_allocations="uniform,front_loaded,back_loaded",
         selection_policies=selection_policies,
     )
 
@@ -70,18 +72,29 @@ def run_ablation(
         "unsafe_exposure",
         "set_size",
         "empty_set_rate",
-        "chosen_unsafe_rate__guideline_first",
-        "top2_has_safe_rate__guideline_first",
+        "chosen_unsafe_rate__observed_rules_first",
+        "top2_has_safe_rate__observed_rules_first",
         "chosen_unsafe_rate__min_total_score",
         "top2_has_safe_rate__min_total_score",
     ]
     present_metric_cols = [col for col in metric_cols if col in df.columns]
 
-    agg = (
-        df.groupby("alpha_allocation", as_index=False)[present_metric_cols]
-        .mean(numeric_only=True)
-        .sort_values("alpha_allocation")
-    )
+    records = []
+    for allocation, group in df.groupby("alpha_allocation", sort=True):
+        record = {
+            "alpha_allocation": allocation,
+            "summary_kind": "unweighted_mean_of_run_metrics",
+            "n_runs": len(group),
+            "raw_results_csv": str(raw_out),
+        }
+        for column in present_metric_cols:
+            values = pd.to_numeric(group[column], errors="raise").dropna()
+            record[column] = float(values.mean()) if len(values) else None
+            record[column + "__numerator"] = float(values.sum())
+            record[column + "__denominator"] = len(values)
+            record[column + "__unavailable"] = len(group) - len(values)
+        records.append(record)
+    agg = pd.DataFrame(records)
     agg.to_csv(out_path, index=False)
     return str(out_path)
 

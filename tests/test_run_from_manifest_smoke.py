@@ -10,7 +10,7 @@ def _write_dr_manifest(csv_path) -> None:
     rows = []
     severities = ["mild", "moderate", "severe"]
     for i in range(20):
-        dme_positive = (i % 3 == 0)
+        dme_positive = i % 3 == 0
         if i == 5:
             dme_positive = None
         rows.append(
@@ -38,7 +38,7 @@ def test_run_evaluation_from_csv_dr_smoke(tmp_path) -> None:
         meta_cols=["patient_id"],
         seed=11,
         alpha=0.1,
-        filter_dme_subset=True,
+        filter_dme_subset=False,
     )
 
     for key in (

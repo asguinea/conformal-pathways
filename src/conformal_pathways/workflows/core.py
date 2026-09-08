@@ -5,6 +5,25 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
+from conformal_pathways.data.schema import Observation
+
+
+@dataclass(frozen=True)
+class DiagnosticResult:
+    """Result supplied after a diagnostic action has actually been executed."""
+
+    action_name: str
+    observation: Observation
+
+
+def validate_result(result, stage: int, action: "Action") -> None:
+    if result is None or result == {}:
+        return
+    if not isinstance(result, DiagnosticResult):
+        raise TypeError("diagnostic results require DiagnosticResult, not a latent-label mapping")
+    if result.action_name != action.name or result.observation.stage != stage:
+        raise ValueError("diagnostic result does not match the executed action and stage")
+
 
 def _freeze(obj: Any) -> Any:
     if isinstance(obj, dict):
@@ -85,20 +104,28 @@ class Workflow(ABC):
         stage: int,
         state: State,
         action: Action,
-        sample_meta: dict[str, Any],
+        sample_meta: DiagnosticResult | None,
     ) -> State:
         """Return a NEW State; do not mutate the input state."""
         raise NotImplementedError
 
     def validate_stage_index(self, stage: int) -> None:
-        if stage < 1 or stage > self.num_stages:
-            raise ValueError(
-                f"stage must be in [1, {self.num_stages}], got {stage}"
-            )
+        if (
+            isinstance(stage, bool)
+            or not isinstance(stage, int)
+            or stage < 1
+            or stage > self.num_stages
+        ):
+            raise ValueError(f"stage must be in [1, {self.num_stages}], got {stage}")
 
-    def rollout(self, sample_meta: dict[str, Any], pathway: Pathway) -> State:
+    def rollout(
+        self,
+        sample_meta: dict[str, Any],
+        pathway: Pathway,
+        diagnostic_results: dict[int, DiagnosticResult] | None = None,
+    ) -> State:
         state = self.initial_state(sample_meta)
         for stage, action in enumerate(pathway.actions, start=1):
             self.validate_stage_index(stage)
-            state = self.transition(stage, state, action, sample_meta)
+            state = self.transition(stage, state, action, (diagnostic_results or {}).get(stage))
         return state

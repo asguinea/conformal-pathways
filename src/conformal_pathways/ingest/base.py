@@ -6,7 +6,6 @@ from typing import Any
 
 import pandas as pd
 
-
 IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".bmp")
 
 
@@ -47,6 +46,17 @@ def validate_manifest_df(df: pd.DataFrame) -> None:
     if missing:
         raise ValueError(f"manifest missing required columns: {sorted(missing)}")
 
+    for column in required:
+        if df[column].isna().any() or df[column].astype(str).str.strip().eq("").any():
+            raise ValueError(f"{column} must be nonempty")
+    if any(".." in Path(str(value)).parts for value in df["image_path"]):
+        raise ValueError("image_path must not escape its root")
+    from conformal_pathways.data.loaders import _normalize_label
+
+    for column in ("dr_severity", "dme_positive", "glaucoma_risk"):
+        if column in df:
+            for value in df[column].dropna():
+                _normalize_label(column, value)
     if df["sample_id"].isna().any():
         raise ValueError("sample_id must not contain null values")
     if df["sample_id"].duplicated().any():
@@ -56,8 +66,7 @@ def validate_manifest_df(df: pd.DataFrame) -> None:
     absolute_paths = [str(path) for path in df["image_path"] if Path(str(path)).is_absolute()]
     if absolute_paths:
         raise ValueError(
-            "image_path must be root-relative; found absolute paths: "
-            f"{absolute_paths[:3]}"
+            f"image_path must be root-relative; found absolute paths: {absolute_paths[:3]}"
         )
 
 
@@ -80,6 +89,13 @@ class DatasetBuilder(ABC):
         dry_run: bool = False,
         stats: dict[str, Any] | None = None,
     ) -> Path | dict[str, Any]:
+        df = df.copy()
+        if "group_provenance" not in df:
+            df["group_provenance"] = (
+                "unverified_filename_pairing"
+                if self.name == "eyepacs"
+                else "patient_identity_unverified"
+            )
         validate_manifest_df(df)
         if dry_run:
             return {"df": df.copy(), "stats": stats or {}}

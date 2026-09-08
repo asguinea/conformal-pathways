@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any
-import warnings
 
 import pandas as pd
 
+from conformal_pathways.data.loaders import normalize_dr_severity
 from conformal_pathways.ingest.base import DatasetBuilder, as_root_relative, resolve_image_file
 
 
@@ -54,9 +55,13 @@ class IDRiDBuilder(DatasetBuilder):
             self._resolve(root, testing_labels_csv) if testing_labels_csv is not None else None
         )
 
-        label_frames = [self._load_labels(training_labels_csv)]
-        if testing_labels_path is not None and testing_labels_path.exists():
-            label_frames.append(self._load_labels(testing_labels_path))
+        training_labels = self._load_labels(training_labels_csv)
+        training_labels["split_hint"] = "train"
+        label_frames = [training_labels]
+        if testing_labels_path is not None:
+            testing_labels = self._load_labels(testing_labels_path)
+            testing_labels["split_hint"] = "test"
+            label_frames.append(testing_labels)
 
         labels_df = pd.concat(label_frames, ignore_index=True)
         records: list[dict[str, Any]] = []
@@ -64,21 +69,25 @@ class IDRiDBuilder(DatasetBuilder):
 
         for _, row in labels_df.iterrows():
             sample_id = str(row["Image name"]).strip()
-            image_path = resolve_image_file(training_images_dir, sample_id)
-            if image_path is None:
-                image_path = resolve_image_file(testing_images_dir, sample_id)
+            image_dir = training_images_dir if row["split_hint"] == "train" else testing_images_dir
+            image_path = resolve_image_file(image_dir, sample_id)
             if image_path is None:
                 skipped_missing += 1
                 continue
 
+            grade = normalize_dr_severity(row["Risk of macular edema"])
+            if grade not in {0, 1, 2}:
+                raise ValueError("invalid macular-edema risk grade")
             records.append(
                 {
                     "sample_id": sample_id,
                     "image_path": as_root_relative(root, image_path),
                     "dataset_source": self.name,
-                    "dr_severity": int(row["Retinopathy grade"]),
-                    "dme_positive": int(row["Risk of macular edema"]) > 0,
-                    "patient_id": sample_id,
+                    "dr_severity": normalize_dr_severity(row["Retinopathy grade"]),
+                    "dme_positive": grade > 0,
+                    "patient_id": None,
+                    "split_hint": row["split_hint"],
+                    "split_provenance": "provider_partition",
                     "eye_id": None,
                 }
             )
@@ -99,6 +108,8 @@ class IDRiDBuilder(DatasetBuilder):
                 "dme_positive",
                 "patient_id",
                 "eye_id",
+                "split_hint",
+                "split_provenance",
             ],
         )
         stats = {

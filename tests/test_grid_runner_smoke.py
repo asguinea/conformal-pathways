@@ -8,7 +8,7 @@ pytest.importorskip("torchvision")
 PIL_Image = pytest.importorskip("PIL.Image")
 pytest.importorskip("sklearn")
 
-from conformal_pathways.eval.grid_runner import run_grid
+from conformal_pathways.eval.grid_runner import run_grid  # noqa: E402
 
 
 def test_run_grid_smoke(tmp_path) -> None:
@@ -53,7 +53,10 @@ def test_run_grid_smoke(tmp_path) -> None:
         variants=variants,
         batch_size=2,
         prefer_mps=False,
-        filter_dme_subset=True,
+        weights="random",
+        random_seed=0,
+        device="cpu",
+        filter_dme_subset=False,
     )
 
     assert out_csv.exists()
@@ -125,19 +128,22 @@ def test_run_grid_with_selection_policies_adds_chosen_columns(tmp_path) -> None:
         variants=["main"],
         batch_size=2,
         prefer_mps=False,
-        filter_dme_subset=True,
-        selection_policies="guideline_first,min_rule_penalty",
+        weights="random",
+        random_seed=0,
+        device="cpu",
+        filter_dme_subset=False,
+        selection_policies="observed_rules_first,min_rule_penalty",
         emit_per_sample_csv=True,
         per_sample_csv_path=str(per_sample_path),
         subgroup_keys="dr_severity",
     )
 
     results = pd.read_csv(out_csv)
-    assert "chosen_unsafe_rate__guideline_first" in results.columns
-    assert "chosen_safe_rate__guideline_first" in results.columns
-    assert "chosen_empty_rate__guideline_first" in results.columns
-    assert "top2_has_safe_rate__guideline_first" in results.columns
-    assert "top3_has_safe_rate__guideline_first" in results.columns
+    assert "chosen_unsafe_rate__observed_rules_first" in results.columns
+    assert "chosen_safe_rate__observed_rules_first" in results.columns
+    assert "chosen_empty_rate__observed_rules_first" in results.columns
+    assert "top2_has_safe_rate__observed_rules_first" in results.columns
+    assert "top3_has_safe_rate__observed_rules_first" in results.columns
     assert per_sample_path.exists()
 
 
@@ -180,7 +186,10 @@ def test_run_grid_alpha_allocation_sweep(tmp_path) -> None:
         variants=["main"],
         batch_size=2,
         prefer_mps=False,
-        filter_dme_subset=True,
+        weights="random",
+        random_seed=0,
+        device="cpu",
+        filter_dme_subset=False,
         alpha_allocations="uniform,front_loaded,back_loaded",
     )
 
@@ -205,7 +214,16 @@ def test_run_grid_profile_runtime_adds_runtime_columns(tmp_path) -> None:
                 "sample_id": sample_id,
                 "dataset_source": "grid_ds",
                 "image_path": rel_path,
-                "dr_severity": ["mild", "moderate", "severe", "mild", "moderate", "severe", "mild", "moderate"][i],
+                "dr_severity": [
+                    "mild",
+                    "moderate",
+                    "severe",
+                    "mild",
+                    "moderate",
+                    "severe",
+                    "mild",
+                    "moderate",
+                ][i],
                 "dme_positive": [True, False, True, False, True, False, True, False][i],
                 "patient_id": f"p{i}",
             }
@@ -226,7 +244,10 @@ def test_run_grid_profile_runtime_adds_runtime_columns(tmp_path) -> None:
         variants=["main"],
         batch_size=2,
         prefer_mps=False,
-        filter_dme_subset=True,
+        weights="random",
+        random_seed=0,
+        device="cpu",
+        filter_dme_subset=False,
         profile_runtime=True,
     )
 

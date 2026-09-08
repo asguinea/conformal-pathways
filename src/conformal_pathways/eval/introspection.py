@@ -104,12 +104,8 @@ def describe_prediction_set(
     lines.append("safety_oracle:")
     try:
         signature = inspect.signature(is_safe)
-        lines.append(
-            f"  function: {is_safe.__module__}.{is_safe.__qualname__}{signature}"
-        )
-        lines.append(
-            "  required_inputs: workflow_name, sample_meta, final_state, pathway"
-        )
+        lines.append(f"  function: {is_safe.__module__}.{is_safe.__qualname__}{signature}")
+        lines.append("  required_inputs: workflow_name, sample_meta, final_state, pathway")
     except Exception as exc:  # pragma: no cover - defensive
         lines.append(f"  <unable to introspect oracle: {exc}>")
 
@@ -118,9 +114,7 @@ def describe_prediction_set(
         try:
             signature = inspect.signature(fn)
             source_file = inspect.getsourcefile(fn) or "<unknown>"
-            lines.append(
-                f"  {fn.__module__}.{fn.__qualname__}{signature} @ {source_file}"
-            )
+            lines.append(f"  {fn.__module__}.{fn.__qualname__}{signature} @ {source_file}")
         except Exception as exc:  # pragma: no cover - defensive
             lines.append(f"  <unable to introspect {fn}: {exc}>")
 

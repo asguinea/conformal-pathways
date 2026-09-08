@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from conformal_pathways.eval.runner import run_synthetic_experiment
 
-
 REQUIRED_KEYS = {
     "existential_safe",
     "oracle_retained",
@@ -54,16 +53,16 @@ def test_run_synthetic_experiment_with_selection_policies_adds_chosen_columns() 
         n=20,
         seed=123,
         alpha=0.1,
-        selection_policies="guideline_first,min_rule_penalty",
+        selection_policies="observed_rules_first,min_rule_penalty",
     )
 
     _assert_metric_bounds(metrics)
-    assert "chosen_unsafe_rate__guideline_first" in metrics
-    assert "chosen_safe_rate__guideline_first" in metrics
-    assert "chosen_empty_rate__guideline_first" in metrics
+    assert "chosen_unsafe_rate__observed_rules_first" in metrics
+    assert "chosen_safe_rate__observed_rules_first" in metrics
+    assert "chosen_empty_rate__observed_rules_first" in metrics
     assert "chosen_unsafe_rate__min_rule_penalty" in metrics
-    assert "top2_has_safe_rate__guideline_first" in metrics
-    assert "top3_has_safe_rate__guideline_first" in metrics
+    assert "top2_has_safe_rate__observed_rules_first" in metrics
+    assert "top3_has_safe_rate__observed_rules_first" in metrics
 
 
 def test_run_synthetic_experiment_profile_runtime_adds_runtime_columns() -> None:

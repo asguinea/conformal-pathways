@@ -42,9 +42,10 @@ class RIMONEBuilder(DatasetBuilder):
                             "image_path": as_root_relative(root, image_path),
                             "dataset_source": self.name,
                             "glaucoma_risk": risk,
-                            "patient_id": sample_id,
+                            "patient_id": None,
                             "eye_id": None,
                             "split_hint": split_hint,
+                            "split_provenance": "provider_partitioned_randomly",
                         }
                     )
 
@@ -58,6 +59,7 @@ class RIMONEBuilder(DatasetBuilder):
                 "patient_id",
                 "eye_id",
                 "split_hint",
+                "split_provenance",
             ],
         )
         stats = {"n_rows": len(df), "source_rows": len(df), "skipped_missing": 0}

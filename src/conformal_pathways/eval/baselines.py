@@ -1,17 +1,13 @@
 from __future__ import annotations
 
-from conformal_pathways.conformal import (
-    build_prediction_set,
-    collect_oracle_scores_by_stage,
-    compute_stage_thresholds,
-)
-from conformal_pathways.data import Sample
 from conformal_pathways.data.splits import make_splits
-from conformal_pathways.eval.metrics import aggregate_metrics, compute_sample_metrics
-from conformal_pathways.eval.runner import make_synthetic_samples_dr, make_synthetic_samples_glaucoma
+from conformal_pathways.eval.experiment import evaluate_experiment
+from conformal_pathways.eval.runner import (
+    make_synthetic_samples_dr,
+    make_synthetic_samples_glaucoma,
+)
 from conformal_pathways.models import TrivialLabelPredictor
-from conformal_pathways.workflows.dr import DRWorkflow
-from conformal_pathways.workflows.glaucoma import GlaucomaWorkflow
+from conformal_pathways.workflows import DRWorkflow, GlaucomaWorkflow
 
 
 def _workflow_and_predictor(workflow_name: str):
@@ -40,75 +36,19 @@ def _weights_for_variant(variant: str) -> tuple[float, float]:
         return 1.0, 1.0
     if variant == "rules_only":
         return 0.0, 1.0
-    if variant == "uncertainty_only":
+    if variant == "model_only":
         return 1.0, 0.0
     if variant == "no_conformal":
         return 1.0, 1.0
     raise ValueError(
         f"Unsupported variant '{variant}'. "
-        "Expected one of: main, rules_only, uncertainty_only, no_conformal."
+        "Expected one of: main, rules_only, model_only, no_conformal."
     )
 
 
-def run_method_variant(
-    workflow_name: str,
-    samples: list[Sample],
-    splits: dict[str, list[str]],
-    alpha: float,
-    variant: str,
-) -> dict[str, float]:
+def run_method_variant(workflow_name, samples, splits, alpha, variant):
     workflow, predictor = _workflow_and_predictor(workflow_name)
-    w_u, w_r = _weights_for_variant(variant)
-
-    sample_by_id = {sample.sample_id: sample for sample in samples}
-    train_samples = [sample_by_id[sample_id] for sample_id in splits["train"]]
-    cal_samples = [sample_by_id[sample_id] for sample_id in splits["cal"]]
-    test_samples = [sample_by_id[sample_id] for sample_id in splits["test"]]
-
-    predictor.fit(train_samples)
-    scores_by_stage = collect_oracle_scores_by_stage(
-        workflow=workflow,
-        samples=cal_samples,
-        predictor=predictor,
-        workflow_name=workflow.name,
-        w_u=w_u,
-        w_r=w_r,
-    )
-
-    if variant == "no_conformal":
-        thresholds = {}
-        for stage, stage_scores in scores_by_stage.items():
-            if not stage_scores:
-                raise ValueError(f"calibration scores are empty at stage {stage}")
-            thresholds[stage] = max(stage_scores)
-    else:
-        thresholds = compute_stage_thresholds(
-            scores_by_stage=scores_by_stage,
-            alpha=alpha,
-            mode="uniform",
-        )
-
-    metrics_per_sample: list[dict[str, float | int | bool]] = []
-    for sample in test_samples:
-        prediction_set = build_prediction_set(
-            workflow=workflow,
-            sample=sample,
-            predictor=predictor,
-            workflow_name=workflow.name,
-            thresholds=thresholds,
-            w_u=w_u,
-            w_r=w_r,
-        )
-        metrics_per_sample.append(
-            compute_sample_metrics(
-                workflow=workflow,
-                workflow_name=workflow.name,
-                sample=sample,
-                prediction_set=prediction_set,
-            )
-        )
-
-    return aggregate_metrics(metrics_per_sample)
+    return evaluate_experiment(workflow, samples, splits, predictor, alpha=alpha, variant=variant)
 
 
 def run_synthetic_comparison(
@@ -131,10 +71,10 @@ def run_synthetic_comparison(
         samples=samples,
         seed=seed,
         ratios=(0.6, 0.2, 0.2),
-        stratify_by_source=True,
+        stratify_by_source=False,
     )
 
-    variants = ["main", "rules_only", "uncertainty_only", "no_conformal"]
+    variants = ["main", "rules_only", "model_only", "no_conformal"]
     return {
         variant: run_method_variant(
             workflow_name=workflow_name,

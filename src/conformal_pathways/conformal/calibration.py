@@ -1,63 +1,41 @@
+"""Reference-path scores aggregated at the declared independent group unit."""
+
 from __future__ import annotations
 
-import math
-from typing import Any
+from collections import defaultdict
 
-from conformal_pathways.data import Sample
-from conformal_pathways.models import Predictor
+from conformal_pathways.data import validate_samples
+from conformal_pathways.safety.oracle import label_unavailability
 from conformal_pathways.safety.oracle_policy import oracle_pathway
-from conformal_pathways.scoring import score_action
-from conformal_pathways.workflows.core import Action
+from conformal_pathways.scoring.nonconformity import score_pathway
 
 
-def oracle_actions_by_stage(workflow, sample_meta: dict[str, Any]) -> list[Action]:
-    pathway = oracle_pathway(workflow, sample_meta, safety_mode="strict")
-    actions = list(pathway.actions)
-    return actions
+def oracle_actions_by_stage(workflow, sample_meta):
+    return list(oracle_pathway(workflow, sample_meta).actions)
 
 
-def collect_oracle_scores_by_stage(
-    workflow,
-    samples: list[Sample],
-    predictor: Predictor,
-    workflow_name: str,
-    w_u: float = 1.0,
-    w_r: float = 1.0,
-) -> dict[int, list[float]]:
-    num_stages = workflow.num_stages
-    scores_by_stage: dict[int, list[float]] = {stage: [] for stage in range(1, num_stages + 1)}
-
+def collect_oracle_scores_by_stage(workflow, samples, predictor, workflow_name, w_u=1.0, w_r=1.0):
+    if workflow_name != workflow.name:
+        raise ValueError("workflow_name mismatch")
+    validate_samples(samples)
+    groups = defaultdict(list)
     for sample in samples:
-        sample_meta = {**sample.labels, **sample.meta}
-        state = workflow.initial_state(sample_meta)
-        actions = oracle_actions_by_stage(workflow, sample_meta)
-        if len(actions) != num_stages:
-            raise ValueError(
-                f"oracle actions length {len(actions)} does not match num_stages={num_stages}"
-            )
-
-        model_uncertainty = predictor.uncertainty([sample])[0]
-        for stage in range(1, num_stages + 1):
-            action = actions[stage - 1]
-            score = score_action(
-                workflow_name=workflow_name,
-                stage=stage,
-                state=state,
-                action=action,
-                model_uncertainty=model_uncertainty,
-                w_u=w_u,
-                w_r=w_r,
-            )
-            if math.isnan(score):
-                raise ValueError(f"NaN score encountered at stage {stage}")
-
-            scores_by_stage[stage].append(score)
-            state = workflow.transition(stage, state, action, sample_meta)
-
-    expected_keys = set(range(1, num_stages + 1))
-    if set(scores_by_stage) != expected_keys:
-        raise ValueError(
-            f"scores_by_stage keys mismatch: expected {expected_keys}, got {set(scores_by_stage)}"
-        )
-
-    return scores_by_stage
+        groups[sample.group_id()].append(sample)
+    if set(groups) & set(getattr(predictor, "training_groups", ())):
+        raise ValueError("calibration groups overlap predictor training groups")
+    result = {t: [] for t in range(1, workflow.num_stages + 1)}
+    for gid in sorted(groups):
+        members = groups[gid]
+        # Calibration targets the population of fully rule-evaluable groups.
+        # Never silently treat unlabelled members as independent successful cases.
+        if any(label_unavailability(workflow.name, s.labels) for s in members):
+            continue
+        vectors = [
+            score_pathway(workflow, s, predictor, oracle_pathway(workflow, s.labels), w_u, w_r)
+            for s in members
+        ]
+        for t in result:
+            result[t].append(max(row[t - 1] for row in vectors))
+    if not result[1]:
+        raise ValueError("no fully rule-evaluable calibration groups")
+    return result

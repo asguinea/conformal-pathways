@@ -8,7 +8,7 @@ pytest.importorskip("torchvision")
 PIL_Image = pytest.importorskip("PIL.Image")
 pytest.importorskip("sklearn")
 
-from conformal_pathways.eval.run_with_embeddings import run_evaluation_with_embeddings
+from conformal_pathways.eval.run_with_embeddings import run_evaluation_with_embeddings  # noqa: E402
 
 
 def test_run_evaluation_with_embeddings_smoke(tmp_path) -> None:
@@ -48,8 +48,10 @@ def test_run_evaluation_with_embeddings_smoke(tmp_path) -> None:
         embeddings_out_path=embeddings_out_path,
         batch_size=2,
         prefer_mps=False,
-        max_items=6,
-        filter_dme_subset=True,
+        weights="random",
+        random_seed=0,
+        device="cpu",
+        filter_dme_subset=False,
     )
     assert (root / "embeddings.npy").exists()
     assert (root / "embeddings_ids.txt").exists()
@@ -63,8 +65,10 @@ def test_run_evaluation_with_embeddings_smoke(tmp_path) -> None:
         embeddings_out_path=embeddings_out_path,
         batch_size=2,
         prefer_mps=False,
-        max_items=6,
-        filter_dme_subset=True,
+        weights="random",
+        random_seed=0,
+        device="cpu",
+        filter_dme_subset=False,
     )
     assert metrics_1 == metrics_2
 

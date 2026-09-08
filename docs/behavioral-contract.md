@@ -1,144 +1,99 @@
 # Behavioral contract
 
-Version 0.1, established in Batch 1. **This specifies the target behavior for
-Batch 2; the migrated implementation does not yet satisfy it.** The final table
-records the known gaps. No guarantee follows from documenting this contract.
+Version 0.2.0.dev0 implements the entry-observation protocol specified in
+[method](method.md), with [toy-rules-v2](toy-rules.md). The scope is complete
+open-loop paths; adaptive decision policies and online calibration are not
+supported. Breaking API and metric changes invalidate comparisons to older
+experimental outputs.
 
-## Records and information available to a decision
+## Inputs, splits, and state
 
-The present `Sample` record contains `sample_id`, `dataset_source`, `image_path`,
-`labels`, and `meta`. That container is convenient for offline experiments but
-does not enforce an information boundary. The corrected APIs must separate:
+- Sample IDs are globally unique strings, preserved through CSV loading. Group
+  identities are namespaced by dataset and identity kind. Cross-source patient
+  linkage requires an explicit `global_patient_id`; absent identity falls back
+  to a sample group without claiming patient independence.
+- Training, calibration, and test splits are disjoint at the declared group
+  level and cover every supplied sample exactly once. Official hints are honored
+  unless repartitioning is explicitly requested and recorded. Group splitting
+  alone cannot establish that the declared identities or exchangeability are true.
+- Only explicit stage-zero observations reach built-in prediction and selection.
+  Target labels and arbitrary metadata are absent from `PredictionInput`.
+  Observation columns must be separate from target columns. Retrospective labels
+  belong only to fitting, reference calibration, and outcome evaluation.
+- A diagnostic result is an explicit, action-matched, stage-matched observation.
+  Positive, negative, and unavailable values are distinct. A skipped or merely
+  hypothetical diagnostic does not reveal its hidden result. Observed values
+  can change subsequent action preferences in a separately executed transition.
+- The reference path is privileged and deterministic. Selection uses entry
+  observations, fixed scoring, and deterministic tie breaks. An empty candidate
+  set produces abstention; exceptions are errors and terminate evaluation.
 
-| Role | Allowed information | Restrictions |
-| --- | --- | --- |
-| Predictor during fitting | Training inputs and training targets | No calibration or test fitting, including preprocessing choices |
-| Predictor at inference | Declared inputs available at that time | No held-out targets or undeclared label-derived metadata |
-| Workflow state | Initial observations, performed actions, returned observations | Each observation has an availability time and provenance |
-| Action scorer and selector | The current observed state, frozen model, fixed calibration output | No latent record, retrospective outcome, or privileged reference policy |
-| Observation environment | Latent values needed to simulate a completed diagnostic action | Only the result of an actually performed action may be returned |
-| Offline evaluator/reference policy | Held-out labels required by its explicit predicate | Privileged information is confined to evaluation |
+## Calibration and sets
 
-Initial DR severity or glaucoma status is an observation only in a benchmark
-that explicitly declares it available at entry. Otherwise it must be a model
-output or remain unknown. Renaming a target to metadata does not make it observed.
+Use one stagewise maximum over each fully labelled calibration group. Exclude
+incomplete groups as groups, report exclusion counts, and reject empty eligible
+calibration sets. Training/calibration group overlap is rejected. Quantiles use
+`ceil((n + 1) * (1 - alpha_t))`, with infinity if the rank exceeds n. Acceptance
+includes ties. Budgets and scoring are fixed before calibration, finite inputs
+are checked, and allocated budgets sum conservatively to at most alpha.
 
-A retrospective photograph grade is not an OCT result. If a label is used to
-simulate a diagnostic result, the experiment must identify that proxy and its
-assumptions; it must not present the result as an observed clinical measurement.
+`variance_weighted`, scalar-uncertainty scoring, arbitrary path truncation, and
+hidden DME cohort filtering are rejected. Action preferences have the explicit
+heuristic interpretation in [method](method.md). The unpruned baseline is the
+full 18-path Cartesian product and does not require calibration labels.
+All evaluation entry points share the same implementation.
 
-## Identity, missingness, and splitting
+## Metrics and denominators
 
-1. Sample IDs must be nonempty and unique within a source; joins must use the
-   source plus sample ID or an explicitly unique global ID. Reject duplicate
-   records and mismatched embedding IDs instead of overwriting or skipping them.
-2. Use verified patient/group identifiers to keep related records together.
-   Namespace local identifiers by source unless a documented cross-source
-   identity map establishes the same patient. An image filename does not prove
-   that two records are independent patients.
-3. Record a dataset's official partition and its provenance. Repartitioning an
-   official test set requires a declared alternative protocol; never silently
-   reinterpret it as training data. Validate split disjointness and completeness.
-4. Labels have present, missing, or invalid status. Normalize valid Boolean
-   encodings explicitly; reject invalid values. Missing DME labels are not
-   negative DME labels, and label availability is not observation availability.
-5. Persist split membership and its configuration. All fitting and model-choice
-   decisions precede the locked calibration and held-out evaluation stages.
+Let P be the retained set, r the reference, and V(p) the versioned toy violation
+predicate. Rule eligibility requires every label needed by that workflow.
+Missing required labels yield unavailable outcomes with a reason. Invalid labels
+fail. A zero denominator yields `None` / JSON `null`, not zero.
 
-## State transitions and selection
-
-- The initial state contains only declared entry observations.
-- A diagnostic action reveals its result only when executed and when that
-  result is available. A skipped diagnostic action leaves the value unknown.
-  An unavailable result remains unknown with an explicit reason.
-- A selection policy must be a function of observed history. Two records with
-  identical observed history and different hidden labels must produce the same
-  decision before either label is revealed. This test applies to indirect leaks
-  through candidate sets, scores, and ranking, not only direct label reads.
-- Branch-dependent future decisions must be represented as contingent behavior
-  or made after new observations arrive. Evaluating hypothetical branches with
-  a latent label must not reveal the unperformed test result to today's selector.
-- Tie-breaking must be deterministic and documented. An empty candidate set
-  produces explicit abstention; a selection exception is an error, not an
-  ordinary empty-set outcome.
-- Full-information reference pathways are evaluation targets, not deployable
-  policies. Both their tie-breaking rule and the rule predicate are versioned.
-
-## Calibration and candidate sets
-
-The target algorithm must define its calibration event, independent sampling
-unit, score, stage indexing, and retained-set semantics before claiming coverage.
-For a fixed split-conformal score and stage error budget `alpha_t`, let `n` be
-the number of exchangeable calibration units and let
-`k = ceil((n + 1) * (1 - alpha_t))`. Use the `k`-th smallest score when `k <= n`;
-use positive infinity when `k = n + 1`. Do not cap that rank at `n`. Reject an
-empty calibration set and invalid/nonfinite scores or error budgets explicitly.
-Acceptance uses `score <= threshold`, including ties.
-
-Stage budgets must be nonnegative and sum to at most the declared total alpha.
-Any zero-budget stage uses an unbounded threshold. Budgets and score parameters
-must be fixed before using the calibration scores for quantiles, or be supported
-by a separately justified method for adaptive calibration. In particular,
-estimating score variances and thresholds on the same calibration data does not
-automatically inherit a fixed-budget guarantee.
-
-Keeping patients out of different splits does not make multiple images from
-one calibration patient independent units. A group-level calibration construction
-or a documented sampling protocol is required for a group-level statement.
-
-The scorer must have an explicit interpretation for candidate actions. Specify
-how new observations change it. A single uncertainty value copied to every
-action is not evidence of an action-specific probability or sequential learning.
-
-An unpruned baseline enumerates every admissible complete pathway using the same
-workflow and input protocol. Its score thresholds are unbounded; the largest
-observed calibration score is not an unpruned baseline. Comparisons share split
-IDs, fitted models, data eligibility, and metric implementations.
-
-## Metric definitions for the corrected evaluation
-
-Let `P_i` be the candidate set for case `i`, `a_i` the selected path (or
-abstention), `r_i` the deterministic reference path, and `V_i(p)` an explicitly
-defined rule violation predicate. Eligibility is determined by the labels
-required for that predicate, before aggregating results. Missing labels yield
-unavailable metrics with a reason; they never imply a successful outcome.
-
-| Quantity | Intended definition and denominator |
+| Export | Definition and denominator |
 | --- | --- |
-| Reference-path inclusion | Fraction with `r_i in P_i` among cases with an evaluable reference; this event must match any formal coverage claim |
-| Existence of a rule-acceptable path | Fraction with at least one `p in P_i` satisfying `V_i(p) = false`, among rule-evaluable cases; empty sets count as false |
-| Any violating candidate | Fraction with at least one violating path among rule-evaluable nonempty sets; report empty-set frequency separately |
-| Within-set violation fraction | Per-case violating-path count divided by set size, averaged over rule-evaluable nonempty sets; label this macro average |
-| Selected-path violation rate | Violating selections divided by the number of rule-evaluable non-abstaining selections |
-| Abstention rate | Number of explicit abstentions divided by all evaluated cases; selection failures are reported separately |
-| Mean set size / empty-set rate | All evaluated cases, independent of label availability |
-| Top-k metrics | State whether all or any returned paths must satisfy the rule, and report how sets smaller than k are handled |
+| `oracle_retained` | r is in P, averaged over reference-evaluable cases; empty sets are false |
+| `group_oracle_retained` | All members' reference paths retained, averaged over fully evaluable declared test groups; a partially labelled group is unavailable |
+| `existential_safe` | At least one nonviolating path in P, averaged over rule-evaluable cases; empty sets are false |
+| `any_unsafe_rate` | At least one violating path, averaged over rule-evaluable nonempty sets |
+| `unsafe_exposure` | Violating count / set size, macro-averaged over rule-evaluable nonempty sets |
+| `chosen_unsafe_rate__POLICY` | Violating selections / rule-evaluable, non-abstaining selections |
+| `chosen_empty_rate__POLICY` | Explicit abstentions / all evaluated cases |
+| `chosen_label_missing_rate__POLICY` | Missing required labels / all evaluated cases, including abstentions |
+| `set_size`, `empty_set_rate` | Mean size and empty-set frequency over all evaluated cases |
+| `topK_has_safe_rate__POLICY` | At least one acceptable returned path, over rule-evaluable cases |
+| `topK_all_safe_rate__POLICY` | All returned paths acceptable, over rule-evaluable cases; empty sets are false |
 
-Every rate export includes numerator, denominator, missing/unevaluable count,
-and applicable abstention/error counts. A zero denominator yields unavailable,
-not zero. Label-conditioned quantities must be accompanied by label-availability
-rates per dataset and subgroup. Uncertainty intervals use the independent
-sampling unit; repeated random splits are not independent patients.
+Top-k returns min(k, set size) paths and exports actual count and completeness.
+Every rate/mean has `__numerator`, `__denominator`, and `__unavailable`; for a
+mean the numerator is a sum, not an event count. Missing outcomes and abstentions
+have separate fields; their counts may overlap. Runtime summaries are descriptive
+per-case durations. The allocation-ablation summary explicitly identifies an
+unweighted mean of run metrics, with run-count denominators and a link to the
+raw result table; it is not a pooled patient estimate or an uncertainty interval. `chosen_error_rate` is zero for completed runs because errors
+abort; it does not estimate failures across attempted runs.
 
-These are rule-based surrogate outcomes. Neither reference-path inclusion nor
-rule satisfaction measures a treatment benefit or the probability of patient harm.
+Per-case records include declared group IDs and can regenerate aggregates.
+Subgroup means exclude unavailable values and report actual denominators;
+all-unavailable groups cannot become a reported worst group. A rule violation
+is not a measured patient harm. Group-respecting uncertainty estimates and
+promoted quantitative results remain Batch 3 work.
 
-## Known implementation gaps to close in Batch 2
+## Batch 2 correction evidence
 
-| ID | Current behavior / issue | Code area | Required evidence |
-| --- | --- | --- | --- |
-| R1 | CSV loading does not reliably carry the availability signal used by diagnostic revelation | `data/loaders.py`, `workflows/dr.py` | CSV-to-state tests for positive, negative, missing, and invalid labels |
-| R2 | Selection merges retrospective labels into policy inputs; initial states and branch construction also need an information-boundary audit | `eval/selection_policies.py`, `conformal/sequential.py`, `workflows/` | Hidden-label perturbation tests before and after diagnostic actions, including indirect candidate-set leaks |
-| R3 | Missing DME can be treated as making every pathway acceptable | `safety/oracle.py`, `eval/metrics.py` | Missing-label cases produce unavailable outcomes and correct denominators |
-| R4 | The finite-sample quantile rank is capped at the number of scores | `conformal/thresholds.py` | Independent order-statistic examples, tiny calibration sets, ties, and invalid inputs |
-| R5 | Variance-based budget allocation uses the same calibration scores | `conformal/thresholds.py` | Fixed allocation or a separately justified and tested adaptation protocol |
-| R6 | Group splitting exists, but calibration scores and metrics operate on image records; identifiers and official partitions need stronger validation | `data/splits.py`, `ingest/`, `conformal/calibration.py` | Verified group protocol, duplicate-ID rejection, partition preservation, and group-level sampling tests |
-| R7 | Action scores reuse a scalar uncertainty; its direction can shrink sets as uncertainty increases; diagnostic actions do not trigger a new model prediction | `scoring/nonconformity.py`, `conformal/sequential.py` | Explicit score semantics and tests of decisions as observations change |
-| R8 | DR severity does not affect the strict predicate; the glaucoma predicate covers a narrow conjunction of actions | `safety/oracle.py`, `safety/patterns.py` | Versioned toy-rule truth tables, exhaustive path checks, and clearly bounded claims |
-| R9 | Selected-path risk includes abstentions; empty sets have exposure 1; errors may be absorbed as abstention | `eval/metrics.py` | Hand-calculated mixed cohorts and distinct denominators for risk, abstention, and missingness |
-| R10 | The no-conformal baseline uses a finite calibration maximum | `eval/baselines.py`, `eval/grid_runner.py` | Exact equality to independent full enumeration across all cases |
-| R11 | Pretrained-weight loading can fall back to random weights; caches lack complete provenance | `features/extract_embeddings.py` | Fail on unavailable requested weights; explicit separately named random baseline; weight, preprocessing, input, and cache identity checks |
+| ID | Resolution | Independent evidence |
+| --- | --- | --- |
+| R1 | Strict Boolean/grade parsing; explicit diagnostic provenance and availability | `test_correctness_contract.py`, workflow tests, adapter validation tests |
+| R2 | Label-free inference boundary; hypothetical paths have no hidden results | Hidden-label/metadata perturbation tests for sets and every selection policy; future observations excluded |
+| R3 | Missing rule labels yield unavailable outcomes; cohorts remain visible | Mixed-label pipeline and denominator fixtures |
+| R4 | Correct rank with infinite threshold; decimal boundary handling | Exact rational order-statistic examples, ties, leave-one-out rank checks, invalid inputs |
+| R5 | Only fixed, calibration-independent allocations | Budget boundary tests, including zero/subnormal alpha; adaptive mode rejected |
+| R6 | Declared group maxima, duplicate/split guards, official partitions preserved | Hand-computed grouped scores, incomplete-group exclusion, leakage rejection, repeated-seed partition tests. Real patient identity remains unverified |
+| R7 | Action-specific fixed preference scores; scope reduced to entry paths | Label-distribution and observed-result score tests. No adaptive model-update or sequential-learning claim |
+| R8 | Versioned and bounded toy rules include DR severity and separate glaucoma constraints | Exhaustive 180 DR and 36 glaucoma label/path combinations; deterministic references |
+| R9 | Selection risk excludes abstention; empty exposure unavailable; failures propagate | Hand-calculated mixed cohorts, all-missing subgroups, complete export reaggregation |
+| R10 | Unpruned baseline exactly enumerates all admissible paths | Independent Cartesian-product equality; no eligible calibration needed; shared runner/grid tests |
+| R11 | Explicit weight identity, no fallback, content/provenance cache checks | Mocked loading failure, generated-image CPU extraction and repeatability, stale image/seed/cache and training-label checks |
 
-The existing tests intentionally remain a migration baseline in Batch 1.
-Any test that asserts an incorrect behavior must be replaced by a test of the
-contract, rather than used to defend the inherited behavior.
+See the [verification record](batch-2-verification.md) for commands, results, and
+remaining boundaries. Dataset verification is not implied by passing fixtures.

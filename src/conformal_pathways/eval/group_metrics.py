@@ -73,7 +73,12 @@ def compute_group_metrics(
     for group_value, group_df in grouped:
         row: dict[str, Any] = {group_key: group_value, "n": int(len(group_df))}
         for source_col, target_col in mappings:
-            row[target_col] = float(group_df[source_col].mean())
+            values = pd.to_numeric(group_df[source_col], errors="raise")
+            n_valid = int(values.notna().sum())
+            row[target_col] = float(values.mean()) if n_valid else None
+            row[target_col + "__numerator"] = float(values.sum())
+            row[target_col + "__denominator"] = n_valid
+            row[target_col + "__unavailable"] = int(len(values) - n_valid)
         records.append(row)
 
     if records:
@@ -88,16 +93,22 @@ def compute_group_metrics(
     metric_cols = [
         col
         for col in group_df.columns
-        if col not in {group_key, "n"} and (_is_safety_metric(col) or _is_risk_metric(col))
+        if col not in {group_key, "n"}
+        and not col.endswith(("__numerator", "__denominator", "__unavailable"))
+        and (_is_safety_metric(col) or _is_risk_metric(col))
     ]
     for metric_col in metric_cols:
+        if group_df[metric_col].notna().sum() == 0:
+            worst_row[f"worst_value__{metric_col}"] = None
+            worst_row[f"worst_n__{metric_col}"] = 0
+            continue
         if _is_safety_metric(metric_col):
             idx = group_df[metric_col].idxmin()
         else:
             idx = group_df[metric_col].idxmax()
         metric_worst_row = group_df.loc[idx]
         worst_row[f"worst_group__{metric_col}"] = metric_worst_row[group_key]
-        worst_row[f"worst_n__{metric_col}"] = int(metric_worst_row["n"])
+        worst_row[f"worst_n__{metric_col}"] = int(metric_worst_row[metric_col + "__denominator"])
         worst_row[f"worst_value__{metric_col}"] = float(metric_worst_row[metric_col])
 
     worst_df = pd.DataFrame([worst_row])

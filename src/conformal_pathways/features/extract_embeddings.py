@@ -1,160 +1,183 @@
 from __future__ import annotations
 
 import argparse
-import warnings
+import hashlib
+import importlib.metadata
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 
-from conformal_pathways.features.image_dataset import ManifestImageDataset
-
+from .cache import ids_path_for, input_identity, validate_embedding_cache, write_embedding_cache
 
 DEFAULT_CACHE_DIR = Path("artifacts/embeddings")
 DEFAULT_OUT_PATH = DEFAULT_CACHE_DIR / "embeddings.npy"
+PRETRAINED_WEIGHTS = "IMAGENET1K_V2"
 
 
 def _require_torch():
     try:
         import torch
-    except ModuleNotFoundError as exc:  # pragma: no cover - depends on environment
-        raise ImportError("torch is required for embedding extraction") from exc
+    except ModuleNotFoundError as exc:
+        raise ImportError("install conformal-pathways[imaging] for embedding extraction") from exc
     return torch
 
 
-def get_device(prefer_mps: bool = True):
+def get_device(prefer_mps=True):
     torch = _require_torch()
-    if prefer_mps and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+    if prefer_mps and torch.backends.mps.is_available():
         return torch.device("mps")
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    return torch.device("cpu")
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def make_resnet50_backbone():
+def make_resnet50_backbone(weights=PRETRAINED_WEIGHTS, random_seed=None):
     torch = _require_torch()
-    try:
-        from torchvision.models import ResNet50_Weights, resnet50
-    except ModuleNotFoundError as exc:  # pragma: no cover - depends on environment
-        raise ImportError("torchvision is required for ResNet50 backbone") from exc
+    from torchvision.models import ResNet50_Weights, resnet50
 
-    try:
-        model = resnet50(weights=ResNet50_Weights.DEFAULT)
-    except Exception as exc:  # pragma: no cover - network/cache dependent
-        warnings.warn(
-            f"Falling back to randomly initialized ResNet50 due to weight load failure: {exc}",
-            stacklevel=2,
-        )
-        model = resnet50(weights=None)
-
+    if weights == "random":
+        if isinstance(random_seed, bool) or not isinstance(random_seed, int) or random_seed < 0:
+            raise ValueError("random baseline requires an explicit nonnegative integer random_seed")
+        # Restore the caller's RNG state on exit.
+        with torch.random.fork_rng(devices=[]):
+            torch.random.default_generator.manual_seed(random_seed)
+            model = resnet50(weights=None)
+    else:
+        if weights != PRETRAINED_WEIGHTS or random_seed is not None:
+            raise ValueError(
+                "choose explicit IMAGENET1K_V2 weights or the separately seeded random baseline"
+            )
+        # Loading failures propagate. Never substitute a different model silently.
+        model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2, progress=False)
     model.fc = torch.nn.Identity()
     model.eval()
-    for param in model.parameters():
-        param.requires_grad_(False)
+    for parameter in model.parameters():
+        parameter.requires_grad_(False)
     return model
 
 
-def _ids_path_for(out_path: Path) -> Path:
-    if out_path.suffix == ".npy":
-        return out_path.with_name(f"{out_path.stem}_ids.txt")
-    return out_path.with_name(f"{out_path.name}_ids.txt")
+def _ids_path_for(path):
+    return ids_path_for(path)
 
 
 def extract_embeddings_from_manifest(
-    manifest_csv: str,
-    dataset_root: str,
-    out_path: str = str(DEFAULT_OUT_PATH),
-    batch_size: int = 32,
-    num_workers: int = 0,
-    prefer_mps: bool = True,
-    max_items: int | None = None,
-) -> dict[str, Any]:
+    manifest_csv,
+    dataset_root,
+    out_path=str(DEFAULT_OUT_PATH),
+    batch_size=32,
+    num_workers=0,
+    prefer_mps=True,
+    max_items=None,
+    weights=PRETRAINED_WEIGHTS,
+    random_seed=None,
+    force_extract=False,
+    device=None,
+):
     torch = _require_torch()
+    from torchvision.models import ResNet50_Weights
 
-    out_path_obj = Path(out_path)
-    if not out_path_obj.is_absolute() and out_path_obj.parent == Path("."):
-        out_path_obj = DEFAULT_CACHE_DIR / out_path_obj.name
-    out_path_obj.parent.mkdir(parents=True, exist_ok=True)
-    DEFAULT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    from .image_dataset import ManifestImageDataset
 
+    if (
+        isinstance(batch_size, bool)
+        or not isinstance(batch_size, int)
+        or batch_size < 1
+        or num_workers < 0
+    ):
+        raise ValueError("invalid batch_size or num_workers")
+    if weights not in {PRETRAINED_WEIGHTS, "random"}:
+        raise ValueError(
+            "weights must name IMAGENET1K_V2 or random; moving DEFAULT aliases are not accepted"
+        )
+    if weights == "random" and (
+        isinstance(random_seed, bool) or not isinstance(random_seed, int) or random_seed < 0
+    ):
+        raise ValueError("random baseline requires an explicit random_seed")
+    if weights != "random" and random_seed is not None:
+        raise ValueError("random_seed is only valid for the random baseline")
+    inputs = input_identity(manifest_csv, dataset_root, max_items)
+    transform = ResNet50_Weights.IMAGENET1K_V2.transforms()
+    target_device = str(device or get_device(prefer_mps))
+    versions = {
+        name: importlib.metadata.version(name)
+        for name in ("torch", "torchvision", "pillow", "numpy")
+    }
+    request = {
+        "architecture": "resnet50",
+        "weights": weights,
+        "random_seed": random_seed,
+        "transform": repr(transform),
+        "inputs": inputs,
+        "versions": versions,
+        "device": target_device,
+        "batch_size": batch_size,
+        "num_workers": num_workers,
+    }
+    out = Path(out_path)
+    if out.suffix != ".npy":
+        raise ValueError("out_path must end in .npy")
+    if out.exists() and not force_extract:
+        array, ids, _ = validate_embedding_cache(out, expected_request=request)
+        return {
+            "n": len(ids),
+            "dim": array.shape[1],
+            "out_path": str(out),
+            "device": target_device,
+            "cache_reused": True,
+        }
     dataset = ManifestImageDataset(
-        manifest_csv=manifest_csv,
-        dataset_root=dataset_root,
-        max_items=max_items,
+        manifest_csv, dataset_root, transform=transform, max_items=max_items
     )
-    dataloader = torch.utils.data.DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers,
+    loader = torch.utils.data.DataLoader(
+        dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
-
-    device = get_device(prefer_mps=prefer_mps)
-    model = make_resnet50_backbone().to(device)
-
-    sample_ids: list[str] = []
-    embedding_batches: list[np.ndarray] = []
-
-    with torch.no_grad():
-        for batch in dataloader:
-            images = batch["image"].to(device)
-            outputs = model(images)
-            outputs_np = outputs.detach().cpu().float().numpy()
-            embedding_batches.append(outputs_np)
-            sample_ids.extend([str(sample_id) for sample_id in batch["sample_id"]])
-
-    if embedding_batches:
-        embeddings = np.concatenate(embedding_batches, axis=0).astype(np.float32)
-    else:
-        embeddings = np.empty((0, 2048), dtype=np.float32)
-
-    np.save(out_path_obj, embeddings)
-
-    ids_path = _ids_path_for(out_path_obj)
-    with ids_path.open("w", encoding="utf-8") as f:
-        for sample_id in sample_ids:
-            f.write(f"{sample_id}\n")
-
-    dim = int(embeddings.shape[1]) if embeddings.ndim == 2 and embeddings.shape[0] > 0 else 2048
+    model = make_resnet50_backbone(weights, random_seed)
+    digest = hashlib.sha256()
+    for key, tensor in sorted(model.state_dict().items()):
+        digest.update(key.encode())
+        digest.update(tensor.cpu().contiguous().numpy().tobytes())
+    model = model.to(target_device)
+    arrays, ids = [], []
+    with torch.inference_mode():
+        for batch in loader:
+            values = model(batch["image"].to(target_device)).cpu().numpy().astype(np.float32)
+            arrays.append(values)
+            ids.extend(batch["sample_id"])
+    embeddings = np.concatenate(arrays)
+    write_embedding_cache(
+        out,
+        embeddings,
+        ids,
+        {
+            "kind": "resnet50_embeddings",
+            "request": request,
+            "model_state_sha256": digest.hexdigest(),
+        },
+    )
     return {
-        "n": int(embeddings.shape[0]),
-        "dim": dim,
-        "out_path": str(out_path_obj),
-        "device": str(device),
+        "n": len(ids),
+        "dim": embeddings.shape[1],
+        "out_path": str(out),
+        "device": target_device,
+        "cache_reused": False,
     }
 
 
-def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Extract ResNet50 embeddings from a manifest")
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Extract explicitly identified ResNet50 embeddings"
+    )
     parser.add_argument("--manifest_csv", required=True)
     parser.add_argument("--dataset_root", required=True)
     parser.add_argument("--out_path", default=str(DEFAULT_OUT_PATH))
     parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--num_workers", type=int, default=0)
-    parser.add_argument("--max_items", type=int, default=None)
+    parser.add_argument("--max_items", type=int)
     parser.add_argument(
-        "--prefer_mps",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Prefer MPS if available (use --no-prefer_mps to disable)",
+        "--weights", choices=[PRETRAINED_WEIGHTS, "random"], default=PRETRAINED_WEIGHTS
     )
-    return parser
-
-
-def main(argv: list[str] | None = None) -> int:
-    parser = _build_arg_parser()
+    parser.add_argument("--random_seed", type=int)
+    parser.add_argument("--force_extract", action="store_true")
+    parser.add_argument("--prefer_mps", action=argparse.BooleanOptionalAction, default=True)
     args = parser.parse_args(argv)
-
-    stats = extract_embeddings_from_manifest(
-        manifest_csv=args.manifest_csv,
-        dataset_root=args.dataset_root,
-        out_path=args.out_path,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-        prefer_mps=args.prefer_mps,
-        max_items=args.max_items,
-    )
-    print(stats)
+    print(extract_embeddings_from_manifest(**vars(args)))
     return 0
 
 

@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from conformal_pathways.data import Sample
@@ -15,16 +17,16 @@ def test_grouping_priority_patient_eye_encounter_sample() -> None:
             "encounter_id": "enc1",
         },
     )
-    assert sample.group_id() == "patient:p1"
+    assert sample.group_id() == json.dumps(["dataset_a", "patient_id", "p1"])
 
     sample.meta = {"eye_id": "e1", "encounter_id": "enc1"}
-    assert sample.group_id() == "eye:e1"
+    assert sample.group_id() == json.dumps(["dataset_a", "eye_id", "e1"])
 
     sample.meta = {"encounter_id": "enc1"}
-    assert sample.group_id() == "encounter:enc1"
+    assert sample.group_id() == json.dumps(["dataset_a", "encounter_id", "enc1"])
 
     sample.meta = {}
-    assert sample.group_id() == "sample:s1"
+    assert sample.group_id() == json.dumps(["dataset_a", "sample_id", "s1"])
 
 
 def test_dme_label_available() -> None:

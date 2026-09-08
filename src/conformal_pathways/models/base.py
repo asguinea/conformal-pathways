@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from conformal_pathways.data import Sample
+from conformal_pathways.data import PredictionInput, Sample
 
 
 class Predictor(ABC):
@@ -11,10 +11,10 @@ class Predictor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def predict_proba(self, samples: list[Sample]) -> list[dict[str, float]]:
+    def predict_proba(self, samples: list[PredictionInput]) -> list[dict[str, float]]:
         raise NotImplementedError
 
-    def uncertainty(self, samples: list[Sample]) -> list[float]:
+    def uncertainty(self, samples: list[PredictionInput]) -> list[float]:
         distributions = self.predict_proba(samples)
         uncertainties: list[float] = []
         for distribution in distributions:

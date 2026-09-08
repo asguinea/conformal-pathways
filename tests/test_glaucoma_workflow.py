@@ -19,7 +19,7 @@ def test_order_extra_tests_sets_tests() -> None:
     sample_meta = {"glaucoma_risk": "high"}
     state = wf.initial_state(sample_meta)
 
-    next_state = wf.transition(1, state, Action("order_extra_tests"), sample_meta)
+    next_state = wf.transition(1, state, Action("order_extra_tests"), None)
 
     assert next_state.get("tests_ordered") == ["OCT_RNFL", "VF"]
 
@@ -29,7 +29,7 @@ def test_no_extra_tests_leaves_empty() -> None:
     sample_meta = {"glaucoma_risk": "high"}
     state = wf.initial_state(sample_meta)
 
-    next_state = wf.transition(1, state, Action("no_extra_tests"), sample_meta)
+    next_state = wf.transition(1, state, Action("no_extra_tests"), None)
 
     assert next_state.get("tests_ordered") == []
 
@@ -39,8 +39,8 @@ def test_followup_invalid_weeks_raises() -> None:
     sample_meta = {"glaucoma_risk": "high"}
     state = wf.initial_state(sample_meta)
 
-    with pytest.raises(ValueError, match="Invalid followup weeks"):
-        wf.transition(3, state, Action("followup", {"weeks": 10}), sample_meta)
+    with pytest.raises(ValueError, match="admissible"):
+        wf.transition(3, state, Action("followup", {"weeks": 10}), None)
 
 
 def test_transition_does_not_mutate_original_state() -> None:
@@ -48,7 +48,7 @@ def test_transition_does_not_mutate_original_state() -> None:
     sample_meta = {"glaucoma_risk": "high"}
     state0 = wf.initial_state(sample_meta)
 
-    _ = wf.transition(1, state0, Action("order_extra_tests"), sample_meta)
+    _ = wf.transition(1, state0, Action("order_extra_tests"), None)
 
     assert state0.get("glaucoma_risk") == "high"
     assert state0.get("tests_ordered") == []
@@ -61,5 +61,5 @@ def test_stage_action_validation_raises() -> None:
     sample_meta = {"glaucoma_risk": "high"}
     state = wf.initial_state(sample_meta)
 
-    with pytest.raises(ValueError, match="Unexpected action"):
-        wf.transition(1, state, Action("treat"), sample_meta)
+    with pytest.raises(ValueError, match="admissible"):
+        wf.transition(1, state, Action("treat"), None)

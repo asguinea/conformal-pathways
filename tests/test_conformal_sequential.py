@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from conformal_pathways.conformal.sequential import build_prediction_set
 from conformal_pathways.data import Sample
 from conformal_pathways.models import TrivialLabelPredictor
@@ -108,22 +110,13 @@ def test_build_prediction_set_is_deterministic() -> None:
     assert _path_signatures(paths_1) == _path_signatures(paths_2)
 
 
-def test_build_prediction_set_max_paths_cap() -> None:
-    workflow = DRWorkflow()
-    sample = _dr_sample("s4", "moderate", True, True)
-    predictor = TrivialLabelPredictor(
-        label_key="dr_severity",
-        class_values=["mild", "moderate", "severe"],
-    )
-    predictor.fit([sample])
-
-    paths = build_prediction_set(
-        workflow=workflow,
-        sample=sample,
-        predictor=predictor,
-        workflow_name=workflow.name,
-        thresholds={1: 999.0, 2: 999.0, 3: 999.0},
-        max_paths=5,
-    )
-
-    assert len(paths) == 5
+def test_path_count_truncation_is_rejected():
+    with pytest.raises(ValueError, match="invalidate"):
+        build_prediction_set(
+            DRWorkflow(),
+            _dr_sample("s", "moderate", True, True),
+            None,
+            "dr_workflow",
+            {1: float("inf"), 2: float("inf"), 3: float("inf")},
+            max_paths=5,
+        )

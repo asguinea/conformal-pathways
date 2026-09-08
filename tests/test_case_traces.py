@@ -10,8 +10,8 @@ from conformal_pathways.workflows import Action, DRWorkflow, Pathway
 
 
 class _DummyPredictor:
-    def uncertainty(self, samples):
-        return [0.25 for _ in samples]
+    def predict_proba(self, samples):
+        return [{"mild": 0.75, "severe": 0.25} for _ in samples]
 
 
 def test_export_case_trace_writes_expected_json(tmp_path: Path) -> None:
@@ -50,7 +50,7 @@ def test_export_case_trace_writes_expected_json(tmp_path: Path) -> None:
         alpha=0.1,
         alpha_allocation="uniform",
         stage_thresholds={1: 2.0, 2: 2.0, 3: 2.0},
-        selection_policies=["guideline_first", "min_rule_penalty"],
+        selection_policies=["observed_rules_first", "min_rule_penalty"],
         pi=pi,
         extra_context={"dataset": "synthetic", "variant": "main", "seed": 0},
     )
@@ -69,12 +69,16 @@ def test_export_case_trace_writes_expected_json(tmp_path: Path) -> None:
 
 
 def test_synthetic_runner_case_trace_export_smoke(tmp_path: Path) -> None:
+    from conformal_pathways.data.splits import make_splits
+    from conformal_pathways.eval.runner import make_synthetic_samples_dr
+
+    test_ids = make_splits(make_synthetic_samples_dr(20, 0), 0)["test"]
     _ = run_synthetic_experiment(
         workflow_name="dr_workflow",
         n=20,
         seed=0,
         alpha=0.1,
-        export_case_traces=",".join(f"dr_{i}" for i in range(20)),
+        export_case_traces=",".join(test_ids),
         case_trace_out_dir=str(tmp_path),
         case_trace_subgroup_keys="dr_severity",
     )

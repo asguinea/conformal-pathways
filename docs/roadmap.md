@@ -1,6 +1,6 @@
 # Four-batch roadmap
 
-## Batch 1 — Independent foundation
+## Batch 1 — Independent foundation (complete)
 
 Create a separate repository and package namespace, selectively migrate code and
 synthetic tests, declare and lock dependencies, add an offline demo, and record
@@ -11,7 +11,7 @@ outside the checkout without external datasets or local project dependencies.
 Record test results and all remaining limitations. Ownership confirmation may
 remain pending; public distribution remains gated on it.
 
-## Batch 2 — Correctness
+## Batch 2 — Correctness (complete for the documented scope)
 
 Resolve R1–R11 in the [behavioral contract](behavioral-contract.md), prioritizing
 information flow, label semantics, calibration, metric denominators, and exact

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from conformal_pathways.conformal.calibration import collect_oracle_scores_by_stage, oracle_actions_by_stage
+from conformal_pathways.conformal.calibration import (
+    collect_oracle_scores_by_stage,
+    oracle_actions_by_stage,
+)
 from conformal_pathways.data import Sample
 from conformal_pathways.models import TrivialLabelPredictor
 from conformal_pathways.scoring import score_action
@@ -38,7 +41,7 @@ def test_collect_oracle_scores_by_stage_shape_and_determinism() -> None:
         label_key="dr_severity",
         class_values=["mild", "moderate", "severe"],
     )
-    predictor.fit(samples)
+    predictor.fit([_dr_sample("independent_training", "mild", True, True)])
 
     workflow = DRWorkflow()
     scores_1 = collect_oracle_scores_by_stage(
@@ -71,21 +74,20 @@ def test_stage1_oracle_score_not_worse_than_no_oct_for_dme_positive() -> None:
     sample_meta = {**sample.labels, **sample.meta}
     state = workflow.initial_state(sample_meta)
     oracle_actions = oracle_actions_by_stage(workflow, sample_meta)
-    model_uncertainty = predictor.uncertainty([sample])[0]
 
     oracle_stage1_score = score_action(
         workflow_name=workflow.name,
         stage=1,
         state=state,
         action=oracle_actions[0],
-        model_uncertainty=model_uncertainty,
+        action_probability=0.25,
     )
     no_oct_score = score_action(
         workflow_name=workflow.name,
         stage=1,
         state=state,
         action=Action("no_OCT"),
-        model_uncertainty=model_uncertainty,
+        action_probability=0.75,
     )
 
     if oracle_actions[0].name == "order_OCT":

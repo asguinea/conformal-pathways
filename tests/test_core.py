@@ -26,9 +26,7 @@ def test_validate_stage_index() -> None:
         def actions_at(self, stage: int, state: State) -> list[Action]:
             return []
 
-        def transition(
-            self, stage: int, state: State, action: Action, sample_meta: dict
-        ) -> State:
+        def transition(self, stage: int, state: State, action: Action, sample_meta: dict) -> State:
             return state
 
     wf = DummyWorkflow(name="dummy", num_stages=2)
@@ -48,9 +46,7 @@ def test_rollout_dummy_workflow() -> None:
         def actions_at(self, stage: int, state: State) -> list[Action]:
             return [Action(name="add", params={"value": stage})]
 
-        def transition(
-            self, stage: int, state: State, action: Action, sample_meta: dict
-        ) -> State:
+        def transition(self, stage: int, state: State, action: Action, sample_meta: dict) -> State:
             next_state = state.copy()
             next_state.set("sum", next_state.get("sum", 0) + action.params["value"])
             return next_state

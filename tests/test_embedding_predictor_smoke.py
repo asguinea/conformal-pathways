@@ -6,6 +6,7 @@ import pytest
 pytest.importorskip("sklearn")
 
 from conformal_pathways.data import Sample
+from conformal_pathways.features.cache import write_embedding_cache
 from conformal_pathways.models.embedding_predictor import EmbeddingLogRegPredictor
 
 
@@ -16,8 +17,9 @@ def test_embedding_logreg_predictor_smoke(tmp_path) -> None:
 
     embeddings_path = tmp_path / "embeddings.npy"
     ids_path = tmp_path / "embeddings_ids.txt"
-    np.save(embeddings_path, embeddings)
-    ids_path.write_text("\n".join(sample_ids) + "\n", encoding="utf-8")
+    write_embedding_cache(
+        embeddings_path, embeddings, sample_ids, {"kind": "synthetic_test", "seed": 0}
+    )
 
     label_map = {"s1": "neg", "s2": "neg", "s3": "pos", "s4": "pos"}
     class_values = ["neg", "pos"]

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from conformal_pathways.conformal.thresholds import (
     allocate_alpha,
     compute_stage_thresholds,
@@ -25,17 +27,9 @@ def test_allocate_alpha_uniform_sums() -> None:
     assert abs(sum(alpha_by_stage.values()) - 0.3) < 1e-12
 
 
-def test_allocate_alpha_variance_weighted_sums() -> None:
-    alpha_by_stage = allocate_alpha(
-        alpha=0.3,
-        T=3,
-        mode="variance_weighted",
-        stage_score_variances={1: 1.0, 2: 2.0, 3: 3.0},
-    )
-
-    assert set(alpha_by_stage) == {1, 2, 3}
-    assert abs(sum(alpha_by_stage.values()) - 0.3) < 1e-12
-    assert alpha_by_stage[3] > alpha_by_stage[2] > alpha_by_stage[1]
+def test_calibration_adaptive_allocation_is_rejected():
+    with pytest.raises(ValueError, match="independently"):
+        allocate_alpha(0.3, 3, "variance_weighted", {1: 1.0, 2: 2.0, 3: 3.0})
 
 
 def test_allocate_alpha_front_back_loaded_t3() -> None:
@@ -81,12 +75,12 @@ def test_compute_stage_thresholds_shapes() -> None:
         alpha=0.3,
         mode="uniform",
     )
-    thresholds_var = compute_stage_thresholds(
+    thresholds_front = compute_stage_thresholds(
         scores_by_stage=scores_by_stage,
         alpha=0.3,
-        mode="variance_weighted",
+        mode="front_loaded",
     )
 
     assert set(thresholds_uniform) == {1, 2, 3}
-    assert set(thresholds_var) == {1, 2, 3}
-    assert thresholds_var != thresholds_uniform
+    assert set(thresholds_front) == {1, 2, 3}
+    assert thresholds_front != thresholds_uniform

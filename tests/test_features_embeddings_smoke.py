@@ -8,7 +8,9 @@ pytest.importorskip("torch")
 pytest.importorskip("torchvision")
 PIL_Image = pytest.importorskip("PIL.Image")
 
-from conformal_pathways.features.extract_embeddings import extract_embeddings_from_manifest
+from conformal_pathways.features.extract_embeddings import (  # noqa: E402
+    extract_embeddings_from_manifest,
+)
 
 
 def test_extract_embeddings_from_manifest_smoke(tmp_path) -> None:
@@ -35,6 +37,9 @@ def test_extract_embeddings_from_manifest_smoke(tmp_path) -> None:
         out_path=str(out_path),
         batch_size=2,
         prefer_mps=False,
+        weights="random",
+        random_seed=0,
+        device="cpu",
     )
 
     assert stats["n"] == 4

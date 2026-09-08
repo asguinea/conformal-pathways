@@ -59,9 +59,9 @@ def test_selection_policy_print_smoke(capsys) -> None:
         n=20,
         seed=0,
         alpha=0.1,
-        selection_policies="guideline_first,min_rule_penalty",
+        selection_policies="observed_rules_first,min_rule_penalty",
         debug_print_selected_paths=True,
     )
     captured = capsys.readouterr()
-    assert "[guideline_first] selected:" in captured.out
+    assert "[observed_rules_first] selected:" in captured.out
     assert "[min_rule_penalty] selected:" in captured.out

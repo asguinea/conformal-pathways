@@ -17,14 +17,16 @@ def test_idrid_builder_manifest_and_dme_mapping(tmp_path) -> None:
 
     labels_csv = labels_dir / "a_IDRiD_Disease_Grading_Training_Labels.csv"
     labels_csv.write_text(
-        "Image name, Retinopathy grade, Risk of macular edema,\n"
-        "IDRiD_001,2,1,\n"
-        "IDRiD_002,0,0,\n",
+        "Image name, Retinopathy grade, Risk of macular edema,\nIDRiD_001,2,1,\n",
         encoding="utf-8",
     )
 
+    test_csv = labels_dir / "testing.csv"
+    test_csv.write_text("Image name,Retinopathy grade,Risk of macular edema\nIDRiD_002,0,0\n")
     builder = IDRiDBuilder()
-    result = builder.build_manifest(root=root, out_csv=root / "manifest.csv", dry_run=True)
+    result = builder.build_manifest(
+        root=root, out_csv=root / "manifest.csv", dry_run=True, testing_labels_csv=test_csv
+    )
     manifest = result["df"]
 
     assert len(manifest) == 2
@@ -35,3 +37,23 @@ def test_idrid_builder_manifest_and_dme_mapping(tmp_path) -> None:
     assert row1["dr_severity"] == 2
     assert bool(row1["dme_positive"]) is True
     assert bool(row2["dme_positive"]) is False
+
+    assert row1["split_hint"] == "train"
+    assert row2["split_hint"] == "test"
+    assert manifest["patient_id"].isna().all()
+
+
+def test_idrid_rejects_fractional_risk_grade(tmp_path):
+    import pytest
+
+    (tmp_path / "case.jpg").write_bytes(b"image")
+    labels = tmp_path / "labels.csv"
+    labels.write_text("Image name,Retinopathy grade,Risk of macular edema\ncase,2,1.5\n")
+    with pytest.raises(ValueError, match="invalid"):
+        IDRiDBuilder().build_manifest(
+            tmp_path,
+            tmp_path / "out.csv",
+            training_images_dir=".",
+            training_labels_csv=labels,
+            dry_run=True,
+        )

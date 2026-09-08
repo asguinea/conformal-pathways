@@ -1,95 +1,111 @@
 from __future__ import annotations
 
+from numbers import Real
 from typing import Any
 
 import pandas as pd
 
-from conformal_pathways.data.schema import Sample
+from .schema import Observation, Sample, validate_samples
 
 
-def normalize_dr_severity(value: Any) -> Any:
+def normalize_dr_severity(value: Any) -> int | str:
     if isinstance(value, bool):
-        return value
-    if isinstance(value, int) and value in {0, 1, 2, 3, 4}:
-        return value
-    if isinstance(value, str) and value.lower() in {"mild", "moderate", "severe"}:
-        return value.lower()
-    return value
-
-
-def normalize_glaucoma_risk(value: Any) -> Any:
+        raise ValueError("invalid dr_severity")
+    if isinstance(value, Real) and value in (0, 1, 2, 3, 4):
+        return int(value)
     if isinstance(value, str):
-        lowered = value.strip().lower()
-        if lowered in {"low", "high"}:
-            return lowered
-    return value
+        token = value.strip().lower()
+        if token in {"0", "1", "2", "3", "4"}:
+            return int(token)
+        if token in {"mild", "moderate", "severe"}:
+            return token
+    raise ValueError(f"invalid dr_severity: {value!r}")
 
 
-def _normalize_label(label_key: str, value: Any) -> Any:
-    if label_key == "dr_severity":
+def normalize_glaucoma_risk(value: Any) -> str:
+    token = str(value).strip().lower()
+    if token not in {"low", "high"}:
+        raise ValueError(f"invalid glaucoma_risk: {value!r}")
+    return token
+
+
+def normalize_bool(value: Any) -> bool:
+    # CSV values may be Python/numpy numerics or strings. Unknown is handled
+    # separately by the loader; arbitrary truthiness is never used.
+    token = str(value).strip().lower()
+    if token in {"true", "1", "1.0"}:
+        return True
+    if token in {"false", "0", "0.0"}:
+        return False
+    raise ValueError(f"invalid Boolean label: {value!r}")
+
+
+def _normalize_label(key: str, value: Any) -> Any:
+    if key == "dr_severity":
         return normalize_dr_severity(value)
-    if label_key == "glaucoma_risk":
+    if key == "glaucoma_risk":
         return normalize_glaucoma_risk(value)
-    if label_key == "dme_positive":
-        if isinstance(value, bool):
-            return value
-        if isinstance(value, str):
-            lowered = value.strip().lower()
-            if lowered == "true":
-                return True
-            if lowered == "false":
-                return False
+    if key in {"dme_positive", "dme_label_available"}:
+        return normalize_bool(value)
     return value
 
 
 def load_samples_from_csv(
     csv_path: str,
-    dataset_source: str,
+    dataset_source: str | None,
     id_col: str = "sample_id",
     image_col: str = "image_path",
     label_cols: list[str] | None = None,
     meta_cols: list[str] | None = None,
+    observation_cols: dict[str, str] | None = None,
 ) -> list[Sample]:
-    df = pd.read_csv(csv_path)
+    # Read strings first: preserve leading zeros in IDs and reject ambiguous labels.
+    df = pd.read_csv(csv_path, dtype=str, keep_default_na=False)
+    if id_col not in df:
+        raise ValueError(f"missing ID column: {id_col}")
     label_cols = label_cols or []
-    meta_cols = meta_cols or []
+    meta_cols = list(dict.fromkeys([*(meta_cols or []), "split_hint", "split_provenance"]))
+    observation_cols = observation_cols or {}
+    if set(observation_cols.values()) & (
+        set(label_cols) | {"dr_severity", "dme_positive", "glaucoma_risk", "dme_label_available"}
+    ):
+        raise ValueError("observation columns must be separate from target columns")
+    if set(observation_cols.values()) - set(df.columns):
+        raise ValueError("missing declared observation column")
+    samples = []
+    missing = {"", "na", "nan", "null", "none"}
 
-    available_columns = set(df.columns)
-    samples: list[Sample] = []
+    def present(value):
+        return str(value).strip().lower() not in missing
 
-    for _, row in df.iterrows():
-        sample_id = str(row[id_col])
-        image_value = row[image_col] if image_col in available_columns else None
-        image_path = None if pd.isna(image_value) else str(image_value)
-
-        labels: dict[str, Any] = {}
-        for label_col in label_cols:
-            if label_col not in available_columns:
-                continue
-            value = row[label_col]
-            if pd.isna(value):
-                continue
-            labels[label_col] = _normalize_label(label_col, value)
-
-        meta: dict[str, Any] = {}
-        for meta_col in meta_cols:
-            if meta_col not in available_columns:
-                continue
-            value = row[meta_col]
-            if pd.isna(value):
-                continue
-            meta[meta_col] = value
-
-        sample = Sample(
-            sample_id=sample_id,
-            dataset_source=dataset_source,
-            image_path=image_path,
-            labels=labels,
-            meta=meta,
+    for row in df.to_dict("records"):
+        source = dataset_source or row.get("dataset_source", "")
+        labels = {
+            k: _normalize_label(k, row[k]) for k in label_cols if k in row and present(row[k])
+        }
+        if present(row.get("dme_label_available", "")):
+            availability = normalize_bool(row["dme_label_available"])
+            if availability != present(row.get("dme_positive", "")):
+                raise ValueError("dme_label_available contradicts dme_positive presence")
+        labels.pop("dme_label_available", None)
+        meta = {k: row[k] for k in meta_cols if k in row and present(row[k])}
+        observed = {
+            key: Observation(_normalize_label(key, row[col]), source=f"column:{col}")
+            for key, col in observation_cols.items()
+            if present(row[col])
+        }
+        image = row.get(image_col)
+        samples.append(
+            Sample(
+                row[id_col],
+                source,
+                image if image and present(image) else None,
+                labels,
+                meta,
+                observed,
+            )
         )
-        sample.validate()
-        samples.append(sample)
-
+    validate_samples(samples)
     return samples
 
 

@@ -70,7 +70,7 @@ def build_per_sample_rows(
     extra_fields = extra_fields or {}
     extra_cols = list(extra_fields.keys())
 
-    base_cols = ["sample_id", "dataset_source", "patient_id", "eye_id"]
+    base_cols = ["sample_id", "dataset_source", "group_id", "patient_id", "eye_id"]
     ordered_cols: list[str] = []
     for col in base_cols + subgroup_cols + metric_cols + extra_cols:
         if col not in ordered_cols:
@@ -81,6 +81,9 @@ def build_per_sample_rows(
         row: dict[str, Any] = {
             "sample_id": _sample_lookup(sample, "sample_id"),
             "dataset_source": _sample_lookup(sample, "dataset_source"),
+            "group_id": sample.group_id()
+            if callable(getattr(sample, "group_id", None))
+            else _sample_lookup(sample, "group_id"),
             "patient_id": _sample_lookup(sample, "patient_id"),
             "eye_id": _sample_lookup(sample, "eye_id"),
         }

@@ -1,86 +1,42 @@
 import pytest
 
-from conformal_pathways.workflows.core import Action
-from conformal_pathways.workflows.dr import (
-    DME_STATUS_REVEALED_POSITIVE,
-    DME_STATUS_UNKNOWN,
-    DRWorkflow,
-)
+from conformal_pathways.data import Observation
+from conformal_pathways.workflows.core import Action, DiagnosticResult
+from conformal_pathways.workflows.dr import DRWorkflow
 
 
-def test_initial_state_defaults() -> None:
-    wf = DRWorkflow()
-    state = wf.initial_state({"dr_severity": "moderate"})
-
+def test_initial_state_defaults():
+    state = DRWorkflow().initial_state({"dr_severity": "moderate"})
     assert state.get("dr_severity") == "moderate"
-    assert state.get("dme_status") == DME_STATUS_UNKNOWN
+    assert state.get("dme_status") == "unknown"
     assert state.get("oct_ordered") is False
     assert state.get("management") is None
     assert state.get("followup_weeks") is None
 
 
-def test_oct_reveals_dme_when_available() -> None:
+@pytest.mark.parametrize(
+    "value,status", [(True, "revealed_positive"), (False, "revealed_negative"), (None, "unknown")]
+)
+def test_explicit_result_updates_a_new_state(value, status):
     wf = DRWorkflow()
-    sample_meta = {
-        "dr_severity": "moderate",
-        "dme_label_available": True,
-        "dme_positive": True,
-    }
-    state = wf.initial_state(sample_meta)
-
-    next_state = wf.transition(1, state, Action("order_OCT"), sample_meta)
-
-    assert next_state.get("oct_ordered") is True
-    assert next_state.get("dme_status") == DME_STATUS_REVEALED_POSITIVE
+    initial = wf.initial_state({})
+    result = DiagnosticResult("order_OCT", Observation(value, "synthetic_result", 1))
+    final = wf.transition(1, initial, Action("order_OCT"), result)
+    assert final.get("dme_status") == status
+    assert final.get("oct_ordered") is True
+    assert initial.get("dme_status") == "unknown"
+    assert initial.get("oct_ordered") is False
 
 
-def test_oct_does_not_reveal_when_unavailable() -> None:
+def test_followup_set():
     wf = DRWorkflow()
-    sample_meta = {
-        "dr_severity": "moderate",
-        "dme_label_available": False,
-        "dme_positive": True,
-    }
-    state = wf.initial_state(sample_meta)
-
-    next_state = wf.transition(1, state, Action("order_OCT"), sample_meta)
-
-    assert next_state.get("oct_ordered") is True
-    assert next_state.get("dme_status") == DME_STATUS_UNKNOWN
+    state = wf.initial_state({})
+    assert (
+        wf.transition(3, state, Action("followup", {"weeks": 12}), None).get("followup_weeks") == 12
+    )
 
 
-def test_followup_set() -> None:
+def test_followup_invalid_weeks_raises():
     wf = DRWorkflow()
-    sample_meta = {"dr_severity": "moderate"}
-    state = wf.initial_state(sample_meta)
-
-    next_state = wf.transition(3, state, Action("followup", {"weeks": 12}), sample_meta)
-
-    assert next_state.get("followup_weeks") == 12
-
-
-def test_transition_does_not_mutate_original_state() -> None:
-    wf = DRWorkflow()
-    sample_meta = {
-        "dr_severity": "moderate",
-        "dme_label_available": True,
-        "dme_positive": True,
-    }
-    state0 = wf.initial_state(sample_meta)
-
-    _ = wf.transition(1, state0, Action("order_OCT"), sample_meta)
-
-    assert state0.get("dr_severity") == "moderate"
-    assert state0.get("dme_status") == DME_STATUS_UNKNOWN
-    assert state0.get("oct_ordered") is False
-    assert state0.get("management") is None
-    assert state0.get("followup_weeks") is None
-
-
-def test_followup_invalid_weeks_raises() -> None:
-    wf = DRWorkflow()
-    sample_meta = {"dr_severity": "moderate"}
-    state = wf.initial_state(sample_meta)
-
-    with pytest.raises(ValueError, match="Invalid followup weeks"):
-        wf.transition(3, state, Action("followup", {"weeks": 10}), sample_meta)
+    with pytest.raises(ValueError, match="admissible"):
+        wf.transition(3, wf.initial_state({}), Action("followup", {"weeks": 10}), None)

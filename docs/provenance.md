@@ -43,14 +43,14 @@ sources, and permitted uses must be recorded before a dataset benchmark.
 | Adapter | Provenance entry point | Current label interpretation | Outstanding checks |
 | --- | --- | --- | --- |
 | IDRiD | [Provider portal](https://idrid.grand-challenge.org/) | Retinopathy grade; macular-edema risk converted to Boolean | Portal retrieval was unavailable during this inventory; verify terms and grading semantics. The converted risk label is a proxy, not an OCT result. |
-| Messidor-2 | [ADCIS](https://www.adcis.net/en/third-party/messidor2/) | Severity from a caller-supplied annotation CSV; DME unavailable | Review image terms and the separate origin/terms of the actual annotation file. |
+| Messidor-2 | [ADCIS](https://www.adcis.net/en/third-party/messidor2/) | Severity and binary adjudicated DME from a caller-supplied annotation CSV | Review image terms and the separate origin/terms of the actual annotation file. |
 | EyePACS | [Kaggle competition](https://www.kaggle.com/competitions/diabetic-retinopathy-detection) | Retinopathy grade; DME unavailable | Record exact source and accepted access terms; verify patient pairing from IDs. |
 | REFUGE | [Provider portal](https://refuge.grand-challenge.org/) | Folder labels mapped to illustrative high/low status | Portal retrieval was unavailable during this inventory; verify access terms and avoid interpreting a disease class as a clinical risk estimate. |
 | RIM-ONE DL | [Maintainer repository](https://github.com/miag-ull/rim-one-dl) | Folder labels mapped to illustrative high/low status | Verify dataset version, terms, participant grouping, and preservation of official partition hints. |
 
 Provider links are provenance leads, not legal conclusions. Do not infer that
-public download availability permits redistribution. No dataset was downloaded
-for Batch 1.
+public download availability permits redistribution. No real dataset was downloaded
+for Batches 1 or 2.
 
 ## Dependencies and pretrained assets
 
@@ -65,9 +65,10 @@ for Batch 1.
 
 The [torchvision model documentation](https://docs.pytorch.org/vision/stable/models.html)
 distinguishes pretrained assets and their use conditions from library code.
-The current extractor requests a moving `DEFAULT` weight alias and can fall back
-to random initialization on failure. Contract R11 must be resolved before any
-result is described as a reproducible pretrained-model experiment.
+The corrected extractor requests explicit `IMAGENET1K_V2` weights and the
+associated transform. Loading failures propagate. A separately seeded random
+baseline is explicit in provenance. Generated-image CPU checks passed in Batch 2;
+real pretrained extraction and dataset-level reproduction remain Batch 3 work.
 
 ## Public-release decisions still required
 

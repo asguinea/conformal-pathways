@@ -37,7 +37,9 @@ class REFUGEBuilder(DatasetBuilder):
                     "image_path": as_root_relative(root, image_path),
                     "dataset_source": self.name,
                     "glaucoma_risk": risk,
-                    "patient_id": sample_id,
+                    "patient_id": None,
+                    "split_hint": "train",
+                    "split_provenance": "provider_training400",
                     "eye_id": None,
                 }
             )
@@ -51,6 +53,8 @@ class REFUGEBuilder(DatasetBuilder):
                 "glaucoma_risk",
                 "patient_id",
                 "eye_id",
+                "split_hint",
+                "split_provenance",
             ],
         )
         stats = {"n_rows": len(df), "source_rows": len(df), "skipped_missing": 0}

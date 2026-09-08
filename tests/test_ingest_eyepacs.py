@@ -28,9 +28,7 @@ def test_eyepacs_builder_manifest(tmp_path) -> None:
 
     assert len(manifest) == 2
     assert set(["sample_id", "image_path", "dataset_source"]).issubset(manifest.columns)
-    assert set(["dr_severity", "dme_positive", "patient_id", "eye_id"]).issubset(
-        manifest.columns
-    )
+    assert set(["dr_severity", "dme_positive", "patient_id", "eye_id"]).issubset(manifest.columns)
 
     row_left = manifest.loc[manifest["sample_id"] == "10_left"].iloc[0]
     assert row_left["dataset_source"] == "eyepacs"

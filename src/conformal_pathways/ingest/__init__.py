@@ -8,7 +8,6 @@ from conformal_pathways.ingest.refuge import REFUGEBuilder
 from conformal_pathways.ingest.registry import get_builder, list_builders, register_builder
 from conformal_pathways.ingest.rimone import RIMONEBuilder
 
-
 for builder in (
     EyePACSBuilder(),
     IDRiDBuilder(),

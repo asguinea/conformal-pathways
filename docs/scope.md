@@ -10,8 +10,10 @@ experimental implementation.
 Two illustrative workflows enumerate diagnostic, management, and follow-up
 actions. The code includes group-aware splitting, a class-prior predictor,
 optional logistic regression on cached image embeddings, stage-wise scoring,
-path filtering, selection policies, and metrics. All scientific APIs are
-experimental and may change as the behavioral contract is implemented.
+path filtering, selection policies, and metrics. All scientific APIs remain
+experimental. This version builds open-loop sets using entry observations; it
+does not evaluate contingent treatment policies or recalibrate after a new test
+result. Explicit diagnostic state transitions are separate building blocks.
 
 The synthetic demo exercises a complete train/calibrate/evaluate pipeline.
 Its labels are randomly generated; its predictor returns training-class

@@ -53,13 +53,13 @@ def main(argv: list[str] | None = None) -> int:
         alpha_allocation="uniform",
     )
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "project_version": __version__,
         "verification_scope": "installation_smoke_only",
-        "scientific_validation": "pending",
+        "scientific_validation": "benchmark_pending",
         "notice": (
-            "Synthetic class-prior demonstration. Metric definitions and evaluation logic "
-            "are under revision; these values do not establish coverage or clinical safety."
+            "Synthetic class-prior demonstration of the entry-observation toy protocol. "
+            "These values do not establish predictive performance or clinical safety."
         ),
         "config": {
             "workflow": args.workflow,

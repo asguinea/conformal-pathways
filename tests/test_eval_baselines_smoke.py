@@ -4,8 +4,7 @@ import math
 
 from conformal_pathways.eval.baselines import run_synthetic_comparison
 
-
-EXPECTED_VARIANTS = {"main", "rules_only", "uncertainty_only", "no_conformal"}
+EXPECTED_VARIANTS = {"main", "rules_only", "model_only", "no_conformal"}
 EXPECTED_METRICS = {
     "existential_safe",
     "oracle_retained",
@@ -40,7 +39,7 @@ def test_run_synthetic_comparison_dr_smoke() -> None:
         _assert_metrics_shape_and_bounds(comparison[variant])
 
     assert 0.0 <= comparison["rules_only"]["oracle_retained"] <= 1.0
-    assert 0.0 <= comparison["uncertainty_only"]["oracle_retained"] <= 1.0
+    assert 0.0 <= comparison["model_only"]["oracle_retained"] <= 1.0
 
 
 def test_run_synthetic_comparison_glaucoma_smoke() -> None:
@@ -56,4 +55,4 @@ def test_run_synthetic_comparison_glaucoma_smoke() -> None:
         _assert_metrics_shape_and_bounds(comparison[variant])
 
     assert 0.0 <= comparison["rules_only"]["oracle_retained"] <= 1.0
-    assert 0.0 <= comparison["uncertainty_only"]["oracle_retained"] <= 1.0
+    assert 0.0 <= comparison["model_only"]["oracle_retained"] <= 1.0

@@ -5,7 +5,6 @@ from pathlib import Path
 
 from conformal_pathways.plots.plot_curves import plot_dataset_bundle, plot_overlay_existential_safe
 
-
 DEFAULT_RESULTS = {
     "idrid": "artifacts/results/idrid_grid.csv",
     "messidor": "artifacts/results/messidor_grid.csv",

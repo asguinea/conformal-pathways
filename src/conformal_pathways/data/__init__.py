@@ -1,3 +1,3 @@
-from .schema import Sample
+from .schema import Observation, PredictionInput, Sample, validate_samples
 
-__all__ = ["Sample"]
+__all__ = ["Observation", "PredictionInput", "Sample", "validate_samples"]

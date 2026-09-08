@@ -1,60 +1,36 @@
+"""Stage-filtered open-loop pathways scored from entry observations only."""
+
 from __future__ import annotations
 
-from conformal_pathways.data import Sample
-from conformal_pathways.models import Predictor
-from conformal_pathways.scoring import score_action
-from conformal_pathways.workflows.core import Pathway, Workflow
+import math
 
-
-def _pathway_sort_key(path: Pathway) -> tuple[tuple[str, tuple[tuple[str, str], ...]], ...]:
-    return tuple(
-        (
-            action.name,
-            tuple((key, repr(value)) for key, value in sorted(action.params.items())),
-        )
-        for action in path.actions
-    )
+from conformal_pathways.safety.oracle_policy import enumerate_all_pathways
+from conformal_pathways.scoring.nonconformity import score_pathway
 
 
 def build_prediction_set(
-    workflow: Workflow,
-    sample: Sample,
-    predictor: Predictor,
-    workflow_name: str,
-    thresholds: dict[int, float],
-    w_u: float = 1.0,
-    w_r: float = 1.0,
-    max_paths: int | None = None,
-) -> list[Pathway]:
-    sample_meta = {**sample.labels, **sample.meta}
-    num_stages = workflow.num_stages
-    expected_keys = set(range(1, num_stages + 1))
-    if set(thresholds) != expected_keys:
-        raise ValueError(f"threshold keys must be {expected_keys}, got {set(thresholds)}")
-
-    model_uncertainty = predictor.uncertainty([sample])[0]
-    current: list[tuple] = [(workflow.initial_state(sample_meta), Pathway())]
-
-    for stage in range(1, num_stages + 1):
-        new: list[tuple] = []
-        for state, path in current:
-            actions = workflow.actions_at(stage, state)
-            for action in actions:
-                score = score_action(
-                    workflow_name=workflow_name,
-                    stage=stage,
-                    state=state,
-                    action=action,
-                    model_uncertainty=model_uncertainty,
-                    w_u=w_u,
-                    w_r=w_r,
-                )
-                if score <= thresholds[stage]:
-                    next_state = workflow.transition(stage, state, action, sample_meta)
-                    new.append((next_state, path.append(action)))
-
-        if max_paths is not None and len(new) > max_paths:
-            new = sorted(new, key=lambda item: _pathway_sort_key(item[1]))[:max_paths]
-        current = new
-
-    return [path for _, path in current]
+    workflow, sample, predictor, workflow_name, thresholds, w_u=1.0, w_r=1.0, max_paths=None
+):
+    if workflow_name != workflow.name:
+        raise ValueError("workflow_name mismatch")
+    if max_paths is not None:
+        raise ValueError(
+            "max_paths truncation is removed because it can invalidate reference inclusion"
+        )
+    if set(thresholds) != set(range(1, workflow.num_stages + 1)):
+        raise ValueError("threshold keys must match all stages")
+    if any(math.isnan(q) or q == -math.inf for q in thresholds.values()):
+        raise ValueError("thresholds must be finite or positive infinity")
+    inputs = sample.prediction_input()
+    paths = enumerate_all_pathways(workflow, inputs.observed_values())
+    # The exact unpruned baseline needs neither model inference nor calibration.
+    if all(q == math.inf for q in thresholds.values()):
+        return paths
+    return [
+        p
+        for p in paths
+        if all(
+            score <= thresholds[t]
+            for t, score in enumerate(score_pathway(workflow, inputs, predictor, p, w_u, w_r), 1)
+        )
+    ]

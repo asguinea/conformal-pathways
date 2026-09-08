@@ -6,11 +6,17 @@ The project provides small branching workflows, calibration and path-filtering
 code, dataset adapters, and an evaluation harness. Its first examples use
 illustrative retinal decision workflows with three stages.
 
-**Development status: foundation complete; scientific correctness review pending.**
-The migrated evaluation has known limitations. Existing tests check software
-behavior, including behavior that must change; they do not certify coverage,
-guideline validity, or clinical safety. See the [claim register](docs/claims.md)
-and [behavioral contract](docs/behavioral-contract.md).
+**Development status: correctness batch implemented and tested; benchmark evidence pending.**
+Version 0.2.0.dev0 evaluates complete action sequences from explicitly declared
+entry observations. Hypothetical tests do not reveal retrospective labels.
+Calibration uses one maximum reference-path score per declared group and stage;
+metrics distinguish unavailable labels, abstention, and rule violations.
+
+The [method and conditional coverage argument](docs/method.md) define the exact
+inclusion event. The [toy rules](docs/toy-rules.md) are illustrative surrogates,
+with no validated clinical interpretation. Adaptive replanning and online
+coverage are outside this version's scope. See the [claim register](docs/claims.md)
+and [Batch 2 verification](docs/batch-2-verification.md).
 
 ## Quick start
 
@@ -31,7 +37,7 @@ metrics. It uses a fitted class-frequency predictor, so it is an installation
 check rather than a predictive-performance benchmark.
 
 `python -m conformal_pathways demo` is an equivalent entry point in the installed
-environment. Package metadata permits Python 3.11–3.14; the Batch 1 validation
+environment. Package metadata permits Python 3.11–3.14; the recorded validation
 environment is Python 3.12. See [development](docs/development.md) for optional
 dependencies and installation from a wheel.
 
@@ -59,12 +65,13 @@ checker. Its outputs are not measurements of clinical outcomes.
 ## Development and scope
 
 - [Scope and intended use](docs/scope.md)
-- [Behavioral contract and known gaps](docs/behavioral-contract.md)
+- [Behavioral contract and correction evidence](docs/behavioral-contract.md)
 - [Claim register](docs/claims.md)
 - [Provenance and licensing inventory](docs/provenance.md)
 - [Development commands](docs/development.md)
 - [Four-batch roadmap](docs/roadmap.md)
 - [Batch 1 verification](docs/batch-1-verification.md)
+- [Batch 2 verification](docs/batch-2-verification.md)
 
 No dataset images, annotations, embeddings, trained models, or benchmark outputs
 are distributed here. Code ownership and the project license remain to be

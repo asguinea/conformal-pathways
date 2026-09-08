@@ -1,107 +1,94 @@
 from __future__ import annotations
 
+import math
 import random
 from collections import defaultdict
 
-from conformal_pathways.data.schema import Sample
+from .schema import Sample, validate_samples
+
+
+def validate_splits(samples: list[Sample], splits: dict[str, list[str]]) -> None:
+    validate_samples(samples)
+    if set(splits) != {"train", "cal", "test"}:
+        raise ValueError("splits must have train, cal, test keys")
+    assigned = [sid for ids in splits.values() for sid in ids]
+    if len(assigned) != len(set(assigned)) or set(assigned) != {s.sample_id for s in samples}:
+        raise ValueError("split overlap, duplicate, missing, or unknown sample IDs")
+    if not _check_no_group_leakage(samples, splits):
+        raise ValueError("group leakage across splits")
 
 
 def _check_no_group_leakage(samples: list[Sample], splits: dict[str, list[str]]) -> bool:
-    sample_by_id = {sample.sample_id: sample for sample in samples}
-    group_to_split: dict[str, str] = {}
-
-    for split_name, sample_ids in splits.items():
-        for sample_id in sample_ids:
-            sample = sample_by_id[sample_id]
-            group_id = sample.group_id()
-            previous_split = group_to_split.get(group_id)
-            if previous_split is None:
-                group_to_split[group_id] = split_name
-            elif previous_split != split_name:
+    lookup = {s.sample_id: s for s in samples}
+    assigned = {}
+    for name, ids in splits.items():
+        for sid in ids:
+            gid = lookup[sid].group_id()
+            if gid in assigned and assigned[gid] != name:
                 return False
+            assigned[gid] = name
     return True
 
 
-def _split_group_ids(
-    group_ids: list[str],
-    rng: random.Random,
-    ratios: tuple[float, float, float],
-) -> dict[str, list[str]]:
-    shuffled = sorted(group_ids)
-    rng.shuffle(shuffled)
-
-    n_groups = len(shuffled)
-    n_train = int(ratios[0] * n_groups)
-    n_cal = int((ratios[0] + ratios[1]) * n_groups) - n_train
-
-    train_ids = shuffled[:n_train]
-    cal_ids = shuffled[n_train : n_train + n_cal]
-    test_ids = shuffled[n_train + n_cal :]
-
-    return {"train": train_ids, "cal": cal_ids, "test": test_ids}
+def _split_group_ids(group_ids, rng, ratios):
+    ids = sorted(group_ids)
+    rng.shuffle(ids)
+    a = int(ratios[0] * len(ids))
+    b = int((ratios[0] + ratios[1]) * len(ids))
+    return {"train": ids[:a], "cal": ids[a:b], "test": ids[b:]}
 
 
 def make_splits(
     samples: list[Sample],
     seed: int,
     ratios: tuple[float, float, float] = (0.6, 0.2, 0.2),
-    stratify_by_source: bool = True,
+    stratify_by_source: bool = False,
+    allow_repartition: bool = False,
 ) -> dict[str, list[str]]:
-    if len(ratios) != 3:
-        raise ValueError("ratios must have exactly three values: (train, cal, test)")
-    if abs(sum(ratios) - 1.0) > 1e-6:
-        raise ValueError("ratios must sum to 1.0")
-
-    rng = random.Random(seed)
-
-    group_to_sample_ids: dict[str, list[str]] = defaultdict(list)
-    group_to_source: dict[str, str] = {}
-    source_to_group_ids: dict[str, set[str]] = defaultdict(set)
-    all_sample_ids = set()
-
+    validate_samples(samples)
+    if (
+        len(ratios) != 3
+        or any(not math.isfinite(r) or r <= 0 for r in ratios)
+        or not math.isclose(sum(ratios), 1, abs_tol=1e-12)
+    ):
+        raise ValueError("ratios must be three finite positive values summing to 1")
+    groups = defaultdict(list)
     for sample in samples:
-        group_id = sample.group_id()
-        group_to_sample_ids[group_id].append(sample.sample_id)
-        source_to_group_ids[sample.dataset_source].add(group_id)
-        all_sample_ids.add(sample.sample_id)
-
-        previous_source = group_to_source.get(group_id)
-        if previous_source is None:
-            group_to_source[group_id] = sample.dataset_source
-        elif previous_source != sample.dataset_source:
-            raise ValueError(
-                f"group '{group_id}' spans multiple dataset_source values: "
-                f"'{previous_source}' and '{sample.dataset_source}'"
-            )
-
-    split_group_ids: dict[str, list[str]] = {"train": [], "cal": [], "test": []}
-
-    if stratify_by_source:
-        for source in sorted(source_to_group_ids):
-            partial = _split_group_ids(list(source_to_group_ids[source]), rng, ratios)
-            for split_name in ("train", "cal", "test"):
-                split_group_ids[split_name].extend(partial[split_name])
+        groups[sample.group_id()].append(sample)
+    rng = random.Random(seed)
+    by_split = {"train": [], "cal": [], "test": []}
+    any_hint = any(s.meta.get("split_hint") for s in samples)
+    if any_hint and not allow_repartition:
+        for gid, members in sorted(groups.items()):
+            hints = {s.meta.get("split_hint") for s in members}
+            if len(hints) != 1 or next(iter(hints)) not in by_split:
+                raise ValueError(
+                    "official split hints must be complete, valid, and consistent within groups"
+                )
+            by_split[next(iter(hints))].append(gid)
+        # Official test membership stays fixed. If calibration is not supplied,
+        # carve it exclusively from the official training groups.
+        if not by_split["cal"]:
+            train_groups = sorted(by_split["train"])
+            rng.shuffle(train_groups)
+            n_train = int(len(train_groups) * ratios[0] / (ratios[0] + ratios[1]))
+            by_split["train"], by_split["cal"] = train_groups[:n_train], train_groups[n_train:]
+    elif stratify_by_source:
+        strata = defaultdict(list)
+        for gid, members in groups.items():
+            sources = {s.dataset_source for s in members}
+            if len(sources) != 1:
+                raise ValueError("cross-source groups cannot be stratified by source")
+            strata[next(iter(sources))].append(gid)
+        for source in sorted(strata):
+            partial = _split_group_ids(strata[source], rng, ratios)
+            for name in by_split:
+                by_split[name].extend(partial[name])
     else:
-        partial = _split_group_ids(list(group_to_sample_ids.keys()), rng, ratios)
-        for split_name in ("train", "cal", "test"):
-            split_group_ids[split_name].extend(partial[split_name])
-
-    splits: dict[str, list[str]] = {"train": [], "cal": [], "test": []}
-    for split_name in ("train", "cal", "test"):
-        for group_id in split_group_ids[split_name]:
-            splits[split_name].extend(sorted(group_to_sample_ids[group_id]))
-
-    train_set = set(splits["train"])
-    cal_set = set(splits["cal"])
-    test_set = set(splits["test"])
-    if train_set & cal_set or train_set & test_set or cal_set & test_set:
-        raise AssertionError("split overlap detected")
-
-    assigned_ids = train_set | cal_set | test_set
-    if assigned_ids != all_sample_ids:
-        raise AssertionError("not all samples were assigned exactly once")
-
-    if not _check_no_group_leakage(samples, splits):
-        raise AssertionError("group leakage detected across splits")
-
+        by_split = _split_group_ids(list(groups), rng, ratios)
+    splits = {
+        name: [s.sample_id for gid in gids for s in sorted(groups[gid], key=lambda s: s.sample_id)]
+        for name, gids in by_split.items()
+    }
+    validate_splits(samples, splits)
     return splits

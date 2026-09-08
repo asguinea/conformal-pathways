@@ -33,18 +33,29 @@ uv sync --locked --extra models --extra plots
 uv run --locked --extra models --extra plots pytest
 ```
 
-The `imaging` extra is declared and locked but is outside the Batch 1 execution
-gate. Its current smoke tests can download pretrained weights. The extractor
-also has a known fallback to random weights when loading fails; it must be
-corrected before benchmark use. Installing the extra alone does not establish
-reproducibility on a particular accelerator or platform.
+The full correctness suite uses generated images and explicitly seeded random
+ResNet-50 weights. It does not download pretrained weights or read real datasets:
+
+```sh
+uv sync --locked --extra imaging --extra plots
+uv run --locked --extra imaging --extra plots pytest
+```
+
+Actual pretrained extraction requests `IMAGENET1K_V2` and its associated
+preprocessing. Weight-loading failures propagate; there is no fallback. A random
+backbone requires both `weights="random"` and an integer `random_seed`, and its
+cache metadata identifies it as such. Reusing a cache checks image bytes, IDs,
+weight request, preprocessing, environment, and saved-artifact hashes. Use an
+explicit output path. A mismatching cache fails; `force_extract=True` replaces
+it only when explicitly requested. See [method](method.md) for the provenance
+contract. CPU checks do not establish accelerator reproducibility.
 
 ## Build and isolated installation
 
 ```sh
 uv sync --locked
 uv run --locked python -m build --no-isolation
-uv run --locked python scripts/verify_distribution.py dist/conformal_pathways-0.1.0.dev0-py3-none-any.whl
+uv run --locked python scripts/verify_distribution.py dist/conformal_pathways-0.2.0.dev0-py3-none-any.whl
 ```
 
 This builds both a source distribution and a wheel with build tools installed
@@ -68,7 +79,9 @@ evaluation exports, traces, manifests, and embedding caches as local artifacts.
 
 ## Validation boundaries
 
-The inherited suite is a migration baseline, not a specification of scientific
-correctness. Batch 2 must replace assertions that encode the known defects and
-add tests derived independently from the contract. Automated formatting, typing,
-multi-platform CI, and release checks are scheduled after the core corrections.
+Tests derived from the contract cover exact arithmetic, hidden-label
+perturbations, exhaustive toy rules, grouping, missingness, baselines, cache
+integrity, and complete pipeline exports. See [Batch 2 verification](batch-2-verification.md).
+Test success does not establish a clinical claim, dataset exchangeability, or
+superiority over a baseline. Full experiment reproduction, multi-platform CI,
+typing, and release checks remain in Batches 3 and 4.

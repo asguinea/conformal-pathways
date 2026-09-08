@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any
-import warnings
 
 import pandas as pd
 
+from conformal_pathways.data.loaders import normalize_bool, normalize_dr_severity
 from conformal_pathways.ingest.base import DatasetBuilder, as_root_relative
 
 
@@ -69,10 +70,10 @@ class Messidor2Builder(DatasetBuilder):
                     "sample_id": sample_id,
                     "image_path": as_root_relative(root, image_path),
                     "dataset_source": self.name,
-                    "dr_severity": int(row["diagnosis"]),
-                    "dme_positive": int(row["adjudicated_dme"]) > 0,
-                    "adjudicated_gradable": int(row["adjudicated_gradable"]),
-                    "patient_id": sample_id,
+                    "dr_severity": normalize_dr_severity(row["diagnosis"]),
+                    "dme_positive": normalize_bool(row["adjudicated_dme"]),
+                    "adjudicated_gradable": normalize_bool(row["adjudicated_gradable"]),
+                    "patient_id": None,
                     "eye_id": None,
                 }
             )

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from conformal_pathways.ingest.base import DatasetBuilder
 
-
 _BUILDERS: dict[str, DatasetBuilder] = {}
 
 

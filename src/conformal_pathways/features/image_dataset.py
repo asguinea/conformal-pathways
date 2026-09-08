@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from typing import Any, Callable
 
 import pandas as pd
@@ -14,6 +13,7 @@ except ModuleNotFoundError:  # pragma: no cover - exercised only when PIL is mis
 try:
     from torch.utils.data import Dataset
 except ModuleNotFoundError:  # pragma: no cover - exercised only when torch is missing
+
     class Dataset:  # type: ignore[no-redef]
         pass
 
@@ -26,23 +26,11 @@ def resolve_image_path(dataset_root: str, image_path: str) -> str:
 
 def _default_transform() -> Callable[[Any], Any]:
     try:
-        from torchvision import transforms
+        from torchvision.models import ResNet50_Weights
     except ModuleNotFoundError as exc:  # pragma: no cover - depends on environment
-        raise ImportError(
-            "torchvision is required for default image transforms"
-        ) from exc
+        raise ImportError("torchvision is required for default image transforms") from exc
 
-    return transforms.Compose(
-        [
-            transforms.Resize(224),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=(0.485, 0.456, 0.406),
-                std=(0.229, 0.224, 0.225),
-            ),
-        ]
-    )
+    return ResNet50_Weights.IMAGENET1K_V2.transforms()
 
 
 class ManifestImageDataset(Dataset):
@@ -58,7 +46,7 @@ class ManifestImageDataset(Dataset):
         if Image is None:  # pragma: no cover - depends on environment
             raise ImportError("Pillow is required to load images")
 
-        df = pd.read_csv(manifest_csv)
+        df = pd.read_csv(manifest_csv, dtype=str, keep_default_na=False)
         if id_col not in df.columns:
             raise ValueError(f"id column '{id_col}' not found in manifest")
         if image_col not in df.columns:
@@ -84,8 +72,9 @@ class ManifestImageDataset(Dataset):
         if not os.path.exists(abs_path):
             raise FileNotFoundError(f"image file not found: {abs_path}")
 
-        image = Image.open(abs_path).convert("RGB")
-        tensor = self.transform(image)
+        with Image.open(abs_path) as source:
+            image = source.convert("RGB")
+            tensor = self.transform(image)
 
         return {
             "sample_id": sample_id,
