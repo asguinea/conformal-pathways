@@ -25,6 +25,7 @@ def main():
     parser.add_argument("--revision", default="HEAD")
     parser.add_argument("--config", type=Path, default=Path("experiments/batch3-v1.json"))
     parser.add_argument("--suite", choices=["synthetic", "real"], default="synthetic")
+    parser.add_argument("--engine", choices=["entry", "sequential"], default="entry")
     parser.add_argument("--data-root", type=Path)
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
@@ -100,7 +101,11 @@ def block_network(event, args):
     }:
         raise RuntimeError('network blocked during reproduction: ' + event)
 sys.addaudithook(block_network)
-from conformal_pathways.benchmarks.__main__ import main
+if sys.argv[1] == 'sequential':
+    from conformal_pathways.benchmarks.sequential import main
+else:
+    from conformal_pathways.benchmarks.__main__ import main
+sys.argv.pop(1)
 main(sys.argv[1:])
 """
     run(
@@ -109,6 +114,7 @@ main(sys.argv[1:])
             "-I",
             "-c",
             probe,
+            args.engine,
             "run",
             "--config",
             str(checkout / config),
@@ -127,6 +133,7 @@ main(sys.argv[1:])
         "requirements_sha256": hashlib.sha256(requirements.read_bytes()).hexdigest(),
         "execution": "installed_wheel_isolated_python_outside_clean_checkout",
         "suite": args.suite,
+        "engine": args.engine,
         "configuration": str(config),
         "socket_operations": "all_python_socket_events_blocked"
         if args.suite == "synthetic"
