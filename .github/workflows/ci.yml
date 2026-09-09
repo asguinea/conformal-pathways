@@ -95,6 +95,8 @@ jobs:
           echo "$GITLEAKS_SHA256  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check
           tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
           "$RUNNER_TEMP/gitleaks" git --log-opts=--all --redact --no-banner .
-      - run: uv run --locked --extra plots python -m conformal_pathways.benchmarks.sequential verify-evidence evidence/batch3-sequential-v1
+      - run: uv run --locked --extra plots python scripts/verify_evidence_portable.py evidence/batch3-sequential-v1
+      - run: uv run --locked --extra plots python scripts/verify_evidence_portable.py evidence/batch3-v2
+      - run: uv run --locked --extra plots python scripts/verify_evidence_portable.py evidence/batch3-v1
       - run: uv run --locked python -m build --no-isolation
       - run: uv run --locked python scripts/verify_distribution.py dist/conformal_pathways-0.4.0-py3-none-any.whl
