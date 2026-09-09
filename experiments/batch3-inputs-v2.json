@@ -1,0 +1,69 @@
+{
+  "dataset_audits": {
+    "idrid": {
+      "analysis_partition_counts": {
+        "test": 102,
+        "train": 404
+      },
+      "annotations": {
+        "idrid_test": "ced1cb8f66e126e98edde38a9b10843e6e8c3a76795b17dd57ca5abbff8ff602",
+        "idrid_train": "789fb5a5aca296f6e01db9eb930cc41a063c681c284dbf3675628afc2a2d4ffe"
+      },
+      "dataset": "idrid",
+      "duplicate_policy": "exclude_conflicts_keep_lexicographic_v1",
+      "entry_observations": [],
+      "exclusion_counts": {
+        "conflicting_source_labels": 8,
+        "redundant_agreeing_duplicate": 2
+      },
+      "exclusions_sha256": "01e154cd7cbb7d6ba09d2c803039562f963c57de6d850b7021818ec2dd9afe69",
+      "group_identity": "sample_id_fallback; patient_linkage_unverified",
+      "images_sha256": "13562ce79aa20b13e63acd133d8e5944fd973f82206478f326efc3479cf9f6c3",
+      "inference_scope": "descriptive_filtered_provider_test_image_surrogate_metrics",
+      "label_interpretation": "DME risk grade > 0 proxy; not an OCT response",
+      "manifest_sha256": "0a046e1f3a8563308810474eb497bafa1955549e6ae5d54f722735480f8ef960",
+      "n_images": 506,
+      "provider_partition_counts": {
+        "test": 103,
+        "train": 413
+      },
+      "raw_images_sha256": "2ce838ff63e13c785d05eb7562f7f60aa3263bdd16f0e2e774f782804f158447",
+      "raw_manifest_sha256": "6c8c611e79ab6193ce90d507d8cade36eaba3e7047e92e05406b627627033679",
+      "workflow": "dr_workflow"
+    },
+    "rimone": {
+      "analysis_partition_counts": {
+        "test": 146,
+        "train": 339
+      },
+      "annotations": {
+        "label_source": "provider_directory_classes"
+      },
+      "dataset": "rimone",
+      "duplicate_policy": "reject",
+      "entry_observations": [],
+      "exclusion_counts": {},
+      "exclusions_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "group_identity": "sample_id_fallback; patient_linkage_unverified",
+      "images_sha256": "7f84324ab6d23add3dab0512b11e6575439b5e994d5d19cf94693c5c8a94c865",
+      "inference_scope": "descriptive_official_test_image_surrogate_metrics",
+      "label_interpretation": "disease class mapped to toy low/high; not a longitudinal risk estimate",
+      "manifest_sha256": "80d985e98c7c9a65c9c164beb7c80af293d3876a2ebb5d100536df57ec14b6de",
+      "n_images": 485,
+      "provider_partition_counts": {
+        "test": 146,
+        "train": 339
+      },
+      "raw_images_sha256": "7f84324ab6d23add3dab0512b11e6575439b5e994d5d19cf94693c5c8a94c865",
+      "raw_manifest_sha256": "80d985e98c7c9a65c9c164beb7c80af293d3876a2ebb5d100536df57ec14b6de",
+      "workflow": "glaucoma_workflow"
+    }
+  },
+  "images_sha256": {
+    "idrid": "13562ce79aa20b13e63acd133d8e5944fd973f82206478f326efc3479cf9f6c3",
+    "rimone": "7f84324ab6d23add3dab0512b11e6575439b5e994d5d19cf94693c5c8a94c865"
+  },
+  "protocol_sha256": "7b449499fbfb1f96f768274b0cdfabc2ee70a9b8e2ba07ac906e1167f23af9c6",
+  "schema_version": 1,
+  "source_sha256": "e9496f1fd1e12c2560baa6693f5a604d4ccc3986fdc28e123b4e5e571ac554e3"
+}
