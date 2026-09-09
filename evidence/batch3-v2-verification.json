@@ -365,7 +365,7 @@
   "static_checks": [
     "ruff check passed",
     "ruff format check passed",
-    "git diff --check passed"
+    "full Batch 3 git diff --check passed with documented generated-file whitespace attributes"
   ],
   "status": "complete_for_documented_scope",
   "tests": {
