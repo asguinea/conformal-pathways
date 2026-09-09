@@ -11,13 +11,19 @@ From the current repository:
 
 ```sh
 uv sync --locked --extra plots
-uv run --locked --extra plots python -m conformal_pathways.benchmarks.sequential verify-evidence evidence/batch3-sequential-v1
-uv run --locked --extra plots python -m conformal_pathways.benchmarks verify-evidence evidence/batch3-v2
-uv run --locked --extra plots python -m conformal_pathways.benchmarks verify-evidence evidence/batch3-v1
+uv run --locked --extra plots python scripts/verify_evidence_portable.py evidence/batch3-sequential-v1
+uv run --locked --extra plots python scripts/verify_evidence_portable.py evidence/batch3-v2
+uv run --locked --extra plots python scripts/verify_evidence_portable.py evidence/batch3-v1
 ```
 
 These checks validate integrity, design completeness, and aggregation from the
-included compact records. They do not reconstruct undistributed patient-level
+included compact records. File hashes, design, counts, means, ranges and identifiers
+must match exactly. The portable check permits at most 1e-12 absolute difference
+only in recomputed interval endpoints and reports the observed difference. This
+accounts for platform-dependent floating-point interval arithmetic; it does not
+relax any frozen experiment/reproduction comparison. The original
+`verify-evidence` module commands remain available for strict byte/number equality.
+These checks do not reconstruct undistributed patient-level
 inputs or independently establish that source observations are correct.
 The [quick-start demos](../README.md#quick-start) exercise generated fixtures.
 

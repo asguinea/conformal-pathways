@@ -34,7 +34,9 @@ checkout and wheel. Batches 2 and 3 remain complete.
   for their permitted contents. The wheel is installed in a clean environment
   outside the checkout and both entry/sequential demos run with core
   dependencies, including with Python network operations blocked.
-- The public quick start is exercised from a clean Git checkout. Benchmark
+- The public quick start passed from a clean Git checkout: 430 core tests
+  passed, 12 optional checks skipped, and both sequential demos completed.
+  The 11 additional portable-audit regression checks also pass. Benchmark
   records are not used as substitutes for installation checks.
 
 ## Asset and dependency review
@@ -80,3 +82,20 @@ Dependency update proposals are enabled for the lock and pinned Actions.
 Changes to dependencies do not rewrite historical benchmark locks or evidence.
 No package-registry upload, dataset upload, pretrained-model publication, or
 clinical deployment is configured.
+
+The first hosted run passed all six software test jobs. Its strict Linux table
+regeneration check failed, so a separate portable aggregation audit was added.
+It preserves exact file hashes, design, counts, means, ranges and identifiers,
+allowing at most 1e-12 absolute difference only in interval endpoints. Each run
+reports actual differences. Eleven regression checks reject changed means,
+counts/ranges, missing endpoints, non-finite values and material interval changes.
+The original exact verifier, experiment locks and evidence are unchanged. This
+is a release-engineering check, not a new experiment or a retroactive change
+to the original reproduction criterion.
+
+Hosted Linux diagnostics measured a maximum absolute endpoint difference of
+1.1102230246251565e-16: 40 differing endpoint entries across the sequential
+JSON/CSV summaries, and four in each entry-only bundle. All counts, means, ranges,
+identifiers and evidence-file hashes agreed exactly. The portable audit and
+Linux distribution/installation checks then passed. The updated core Python 3.12
+job passed 441 tests with 12 optional skips; the scientific package is unchanged.
