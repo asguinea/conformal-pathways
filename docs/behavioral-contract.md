@@ -1,5 +1,10 @@
 # Behavioral contract
 
+This document records the **entry-only baseline** contract. The result-aware
+extension in 0.4.0.dev0 has a separate [method and contract](sequential-method.md).
+Its sessions, stage selectors, calibration histories, and metrics must not be
+conflated with the complete-path baseline described below.
+
 Version 0.2.0.dev0 implements the entry-observation protocol specified in
 [method](method.md), with [toy-rules-v2](toy-rules.md). The scope is complete
 open-loop paths; adaptive decision policies and online calibration are not
@@ -41,7 +46,7 @@ are checked, and allocated budgets sum conservatively to at most alpha.
 hidden DME cohort filtering are rejected. Action preferences have the explicit
 heuristic interpretation in [method](method.md). The unpruned baseline is the
 full 18-path Cartesian product and does not require calibration labels.
-All evaluation entry points share the same implementation.
+All entry-only evaluation entry points share the same implementation.
 
 ## Metrics and denominators
 

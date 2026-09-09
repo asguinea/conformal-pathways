@@ -113,8 +113,12 @@ for module in ("torch", "torchvision", "sklearn", "matplotlib", "PIL", "pytest")
         run([str(python), "-I", "-c", isolation_probe], cwd=working, env=env)
         run([str(cli), "--help"], cwd=working, env=env)
         run([str(ingest), "--help"], cwd=working, env=env)
-        for workflow in ("dr", "glaucoma"):
-            arguments = ["demo", "--workflow", workflow, "--n", "100", "--seed", "0"]
+        for command, workflow in (
+            (command, workflow)
+            for command in ("demo", "sequential-demo")
+            for workflow in ("dr", "glaucoma")
+        ):
+            arguments = [command, "--workflow", workflow, "--n", "100", "--seed", "0"]
             output = run([str(cli), *arguments], cwd=working, env=env)
             module_output = run(
                 [str(python), "-I", "-m", "conformal_pathways", *arguments],
@@ -156,7 +160,7 @@ main(sys.argv[1:])
                         "package imported from isolated environment outside checkout",
                         "optional dependencies and original import namespace absent",
                         "both CLI entry points provide help",
-                        "both workflows match between console, module, and socket-blocked runs",
+                        "entry and sequential demos for both workflows match console, module, and socket-blocked runs",
                         "demo working directory remains empty",
                     ],
                 },

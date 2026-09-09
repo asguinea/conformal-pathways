@@ -11,9 +11,11 @@ Two illustrative workflows enumerate diagnostic, management, and follow-up
 actions. The code includes group-aware splitting, a class-prior predictor,
 optional logistic regression on cached image embeddings, stage-wise scoring,
 path filtering, selection policies, and metrics. All scientific APIs remain
-experimental. This version builds open-loop sets using entry observations; it
-does not evaluate contingent treatment policies or recalibrate after a new test
-result. Explicit diagnostic state transitions are separate building blocks.
+experimental. Version 0.4.0.dev0 adds result-aware sessions and an offline
+evaluator that executes a diagnostic before receiving its simulated result,
+then updates later decisions. The entry predictor and calibration thresholds
+stay fixed. The prior open-loop entry-only API remains available as a baseline.
+See [sequential method](sequential-method.md) for the exact supported behavior.
 
 The synthetic demo exercises a complete train/calibrate/evaluate pipeline.
 Its labels are randomly generated; its predictor returns training-class
@@ -29,8 +31,9 @@ that uncertainty is informative or that a clinical recommendation is correct.
   path. These require separate evidence.
 - Dataset labels may be retrospective proxies. A grading label is not a
   recorded response to a diagnostic action or a treatment-outcome label.
-- There are no validated performance numbers in this version. New experiments
-  follow correctness fixes and a frozen evaluation protocol.
+- The entry-only baseline has independently reproduced descriptive results on
+  one host. They do not validate the result-aware extension. Its scientific
+  evaluation requires a new frozen Batch 3 protocol and independent runs.
 
 ## Completion criteria
 

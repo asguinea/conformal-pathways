@@ -12,6 +12,7 @@ uv sync --locked
 uv run --locked pytest
 uv run --locked conformal-pathways --version
 uv run --locked conformal-pathways demo --workflow dr --n 100 --seed 0
+uv run --locked conformal-pathways sequential-demo --workflow dr --n 100 --seed 0
 ```
 
 The default environment includes NumPy, pandas, and development tools. Tests
@@ -55,12 +56,12 @@ contract. CPU checks do not establish accelerator reproducibility.
 ```sh
 uv sync --locked
 uv run --locked python -m build --no-isolation
-uv run --locked python scripts/verify_distribution.py dist/conformal_pathways-0.3.0.dev0-py3-none-any.whl
+uv run --locked python scripts/verify_distribution.py dist/conformal_pathways-0.4.0.dev0-py3-none-any.whl
 ```
 
 This builds both a source distribution and a wheel with build tools installed
 from the lock. The verification script installs the wheel into a temporary
-environment with hashed, locked core dependencies and runs both demos outside
+environment with hashed, locked core dependencies and runs entry and sequential demos outside
 the checkout, including a run that blocks Python socket operations. It removes
 the temporary environment after checking. A local `pip install .`
 also works, but resolves allowed dependency ranges rather than using `uv.lock`.
@@ -84,11 +85,20 @@ perturbations, exhaustive toy rules, grouping, missingness, baselines, cache
 integrity, and complete pipeline exports. See [Batch 2 verification](batch-2-verification.md).
 Test success does not establish a clinical claim, dataset exchangeability, or
 superiority over a baseline. The [original Batch 3 protocol](experiment-protocol.md)
-and [v2 amendment](batch3-v2-amendment.md) define the current experiment. The
+and [v2 amendment](batch3-v2-amendment.md) define the preserved entry-only experiment. The
 [dataset evidence](dataset-evidence.md) records the filtered IDRiD cohort and
 sealed inputs. Multi-platform CI, typing and release checks remain Batch 4 work.
+The [sequential extension](sequential-method.md) has separate correctness
+fixtures; its empirical benchmark and frozen protocol remain Batch 3 work.
 
 ## Benchmark reproduction from a wheel
+
+The commands in this section concern the **entry-only baseline**, at tag
+`baseline-entry-v2` (`1a798b9`), and its matching 0.3.0.dev0 wheel. Use an isolated
+checkout of that revision. The 0.4.0.dev0 source intentionally fails the old
+protocol's source lock; do not refresh that lock. New sequential benchmarks need
+a separate protocol. This requirement does not affect the quick-start fixture
+commands for the current version above.
 
 After building, run the committed verification script with a new output folder:
 

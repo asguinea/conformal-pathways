@@ -40,7 +40,28 @@ def main(argv: list[str] | None = None) -> int:
     demo.add_argument("--n", type=_sample_count, default=100)
     demo.add_argument("--seed", type=int, default=0)
     demo.add_argument("--alpha", type=_alpha, default=0.1)
+    sequential = commands.add_parser(
+        "sequential-demo", help="Run a generated-data result-aware check with execution traces"
+    )
+    sequential.add_argument("--workflow", choices=("dr", "glaucoma"), default="dr")
+    sequential.add_argument("--n", type=_sample_count, default=100)
+    sequential.add_argument("--seed", type=int, default=0)
+    sequential.add_argument("--alpha", type=_alpha, default=0.1)
     args = parser.parse_args(argv)
+
+    if args.command == "sequential-demo":
+        from conformal_pathways.sequential.demo import run_demo
+
+        report = run_demo(args.workflow, args.n, args.seed, args.alpha)
+        payload = {
+            "verification_scope": "installation_smoke_only",
+            "scientific_validation": "see_claim_register",
+            "config": {"workflow": args.workflow, "n": args.n, "seed": args.seed},
+            "notice": "Generated fixtures with simulated proxy results; not benchmark evidence.",
+            "evaluation": report,
+        }
+        print(json.dumps(payload, indent=2, sort_keys=True, allow_nan=False))
+        return 0
 
     # Keep help and version independent of scientific or optional imports.
     from conformal_pathways.eval.runner import run_synthetic_experiment

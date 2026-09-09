@@ -1,5 +1,9 @@
 # Method: entry-observation path sets
 
+This document specifies the preserved entry-only baseline. For diagnostic
+execution and result-aware decisions in 0.4.0.dev0, see the separate
+[sequential method and contract](sequential-method.md).
+
 Algorithm version: `entry-pathways-v2`. Rule version: `toy-rules-v2`.
 
 ## Information and target
@@ -95,7 +99,7 @@ have not been verified. There is no selected-path, clinical, or adaptive guarant
 
 `main`, `model_only`, and `rules_only` use score weights (1,1), (1,0), and (0,1).
 The `no_conformal` baseline returns exactly all 18 paths and bypasses calibration.
-All runners share split validation, fitting, metrics, and export code. Selection
+All entry-only runners share split validation, fitting, metrics, and export code. Selection
 policies remain fixed across these set-construction ablations. In particular,
 `min_total_score` uses the (1,1) score; `min_rule_penalty` uses it to break penalty
 ties. `observed_rules_first` breaks penalty ties by management burden, distance
@@ -116,4 +120,6 @@ request and artifact integrity. The pretrained request is `IMAGENET1K_V2` with
 its [Torchvision preprocessing](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.resnet50.html).
 Weight loading must succeed; moving `DEFAULT` and silent random fallback are
 unsupported. An explicitly seeded random backbone is a separate experiment.
-Fresh pretrained and accelerator runs remain to be verified in Batch 3.
+Fresh pretrained CPU features were independently reproduced in the
+[entry-only Batch 3 verification](batch-3-v2-verification.md). Accelerator
+reproducibility remains unverified.
