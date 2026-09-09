@@ -23,7 +23,7 @@ tests expose the previous failures and pass after correction. Any intended
 guarantee has a precise event, justified assumptions, and a supporting argument.
 Unsupported capabilities are explicitly reduced or removed.
 
-## Batch 3 — Reproducible evidence (synthetic complete; real inputs blocked)
+## Batch 3 — Reproducible evidence (complete for the documented scope)
 
 Freeze a protocol and configurations. Run synthetic mechanism checks and any
 eligible dataset benchmarks from identified inputs. Record split membership,
@@ -31,13 +31,16 @@ weights, transforms, cache identity, code/environment versions, compute, and
 failures. Produce uncertainty estimates and fair baseline comparisons from
 recomputable records. Update the claim register only with actual evidence.
 
-Acceptance: a clean run regenerates each promoted result within declared
-tolerances, with no unsupported quantitative claim. The frozen protocol and
-synthetic evidence reproduce from an isolated installed wheel; the 80-record
-real-data extension remains open. Images are now local, but duplicate images and
-conflicting IDRiD labels prevent sealing the inputs. See the
-[input audit](batch-3-input-audit.md),
-[verification](batch-3-verification.md) and [results and limitations](batch-3-results.md).
+Acceptance met on the recorded host: 5,760 synthetic and 80 real-image records
+reproduce exactly from independent installed-wheel environments, including
+fresh real features. The [v2 amendment](batch3-v2-amendment.md) resolves the
+IDRiD duplicate/label-conflict blocker through disclosed manifest exclusions
+and a new source/input freeze. The original files and v1 evidence are preserved.
+All 5,840 compact records regenerate 576 summary and 480 paired rows. Negative
+findings, including below-nominal IDRiD reference inclusion, are retained;
+no clinical-safety or superiority claim is promoted. See
+[verification](batch-3-v2-verification.md) and
+[results and limitations](batch-3-v2-results.md).
 
 ## Batch 4 — Public release preparation
 

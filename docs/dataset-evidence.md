@@ -1,6 +1,7 @@
 # Dataset evidence and eligibility
 
-Input/provenance review: 2026-09-08. No real-data benchmark has yet completed.
+Input/provenance review: 2026-09-09. The v2 input audit was sealed before fitting; both real runs now reproduce
+exactly. See [verification](batch-3-v2-verification.md).
 This document distinguishes provider facts, local inventory, and assumptions.
 The benchmark configuration and separate input seal identify exact content;
 folder names alone do not identify a reproducible dataset version.
@@ -9,7 +10,7 @@ folder names alone do not identify a reproducible dataset version.
 
 | Dataset | Provider facts and acknowledgment | Local interpretation / boundary |
 | --- | --- | --- |
-| IDRiD | 516 fundus images, retinopathy and macular-edema risk grades; provider data page states CC BY 4.0. Credit Prasanna Porwal, Samiksha Pachade, Ravi Kamble, Manesh Kokare, Girish Deshmukh, Vivek Sahasrabuddhe, and Fabrice Meriaudeau, *Indian Diabetic Retinopathy Image Dataset (IDRiD)*, IEEE Dataport (2018), DOI 10.21227/H25W98. [Data](https://idrid.grand-challenge.org/Data/), [provider citation](https://idrid.grand-challenge.org/Rules/). | Preserve 413 training / 103 test images. Retinopathy grades 0–4; risk grade >0 becomes the toy DME proxy. This is not an observed OCT response. Patient linkage is unverified. |
+| IDRiD | 516 fundus images, retinopathy and macular-edema risk grades; provider data page states CC BY 4.0. Credit Prasanna Porwal, Samiksha Pachade, Ravi Kamble, Manesh Kokare, Girish Deshmukh, Vivek Sahasrabuddhe, and Fabrice Meriaudeau, *Indian Diabetic Retinopathy Image Dataset (IDRiD)*, IEEE Dataport (2018), DOI 10.21227/H25W98. [Data](https://idrid.grand-challenge.org/Data/), [provider citation](https://idrid.grand-challenge.org/Rules/). | Source partition: 413 training / 103 test images. The disclosed v2 exclusions retain 404 / 102. Retinopathy grades 0–4; risk grade >0 becomes the toy DME proxy. This is not an observed OCT response. Patient linkage is unverified. |
 | RIM-ONE DL | 313 normal and 172 glaucoma images; random and hospital partitions provided. Maintainers permit research/education and restrict copying, redistribution, and unauthorized commercial use. Credit Francisco José Fumero Batista, Tinguaro Diaz-Aleman, Jose Sigut, Silvia Alayon, Rafael Arnay, and Denisse Angel-Pereira, *RIM-ONE DL: A Unified Retinal Image Database for Assessing Glaucoma Using Deep Learning*, Image Analysis & Stereology 39 (2020), 161–167, DOI 10.5566/ias.2346. [Maintainer repository](https://github.com/miag-ull/rim-one-dl). | Use only `partitioned_randomly`: 339 training / 146 test. Disease class maps to illustrative low/high, not future risk. No verified patient IDs are inferred from filename stems. The hospital partition is not a second independent cohort. |
 
 Obtain data through the linked providers under their current terms. The code
@@ -37,37 +38,46 @@ IDRiD resets image numbers between provider partitions. The adapter now uses
 partition-qualified IDs (`idrid/train/IDRiD_001`, `idrid/test/IDRiD_001`) and retains
 the raw source ID separately. This fixes the collision without inventing patient
 identities. Exact label-file SHA-256 values and expected partitions are in the
-configuration. The audit requires all images, rejects duplicate bytes, and seals
-the ordered content/ID identity before fitting. It does not infer independence
-from the absence of identical bytes.
+configuration. The audit requires all original images, applies the frozen IDRiD
+exclusion policy, and rejects any RIM-ONE duplicates. It seals raw and retained
+content identities and the exclusions before fitting. It does not infer
+independence from the absence of identical bytes.
 
-## Current input blocker
+## Resolved input blocker and cohort definition
 
-During preparation, cloud-only files prevented hashing. All 516 IDRiD images
-and 485 selected RIM-ONE images are now available locally. The prespecified audit
-then failed before fitting: the IDRiD copy contains six pairs of byte-identical
-images, including one pair spanning provider training and test partitions.
-Four pairs have conflicting DR or DME labels. RIM-ONE has no exact-byte duplicates.
-See the [input-audit record](batch-3-input-audit.md) for checks and limitations.
+All 516 IDRiD images and 485 selected RIM-ONE images are local. The v1 audit
+rejected six IDRiD duplicate pairs, including one crossing provider partitions.
+Four pairs have conflicting source DR or DME grades. The
+[historical input audit](batch-3-input-audit.md) is preserved.
 
-There is no completed real input seal and no real-data outcome to report.
-Reconcile image/annotation provenance before proceeding. Any exclusion,
-relabeling, grouping, or partition change requires a disclosed protocol amendment
-and a new freeze before real model fitting. Do not bypass the duplicate check.
+The [v2 amendment](batch3-v2-amendment.md) excludes every conflicting copy and
+keeps one deterministic representative when source grades agree. Ten IDRiD
+files are excluded from the analysis manifest; the original files and labels
+are untouched. The filtered cohort contains 404 provider-training and 102
+test images. RIM-ONE's 339/146 partition is unchanged. All excluded source bytes,
+annotation identities, policy and retained identities are covered by the
+[committed input seal](../experiments/batch3-inputs-v2.json). Future consumers
+verify this seal; changing data requires a new amendment, not replacing the seal.
 
-The commands remain the prescribed workflow once the input issue is resolved:
+For reproducibility, obtain the entire original release, including excluded
+images. The runner rebuilds the manifest and verifies the complete audit.
+Analysis subsets and individual exclusion records are generated locally.
+Dataset images, filenames with grades, embeddings and case records are not
+part of the distributed evidence. The exact-byte policy does not establish
+patient independence or eliminate every possible near-duplicate relationship.
 
 ```sh
 uv sync --locked --extra imaging --extra plots
-uv run --locked --extra imaging python -m conformal_pathways.benchmarks audit-data --config experiments/batch3-v1.json --data-root "$DATA_ROOT"
-# Review and commit experiments/batch3-inputs-v1.json before fitting.
-uv run --locked --extra imaging python -m conformal_pathways.benchmarks run --config experiments/batch3-v1.json --suite real --data-root "$DATA_ROOT" --out artifacts/batch3/primary/real
+uv run --locked --extra imaging python -m conformal_pathways.benchmarks run --config experiments/batch3-v2.json --suite real --data-root "$DATA_ROOT" --out artifacts/batch3-v2/primary/real
 ```
 
-Use a fresh output/feature directory for the independent repeat and compare
-bundles with the same command as in the protocol. Both real and synthetic bundles
-are required for a complete two-suite report. Omit `--allow-pending-real` when
-publishing the complete local report.
+For the independent repeat, use `scripts/reproduce_benchmark.py --config
+experiments/batch3-v2.json --suite real --data-root "$DATA_ROOT" --wheel
+/absolute/path/to/wheel.whl --out artifacts/batch3-v2/independent-real` under
+Python 3.12. This creates a fresh environment, checkout and feature directory.
+Compare both complete bundles with the benchmark `compare` command. Both real
+and synthetic bundles are required for a complete report; omit
+`--allow-pending-real` when generating it with `publish-local`.
 
 ## Excluded or deferred inputs
 

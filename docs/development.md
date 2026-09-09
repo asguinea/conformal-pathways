@@ -83,19 +83,18 @@ Tests derived from the contract cover exact arithmetic, hidden-label
 perturbations, exhaustive toy rules, grouping, missingness, baselines, cache
 integrity, and complete pipeline exports. See [Batch 2 verification](batch-2-verification.md).
 Test success does not establish a clinical claim, dataset exchangeability, or
-superiority over a baseline. The [Batch 3 protocol](experiment-protocol.md) and
-[results](batch-3-results.md) define the synthetic benchmark scope. Real-image
-reproduction remains blocked by the [input audit](batch-3-input-audit.md), which
-found duplicate images and conflicting labels after the files became local; multi-platform CI,
-typing, and release checks remain Batch 4 work.
+superiority over a baseline. The [original Batch 3 protocol](experiment-protocol.md)
+and [v2 amendment](batch3-v2-amendment.md) define the current experiment. The
+[dataset evidence](dataset-evidence.md) records the filtered IDRiD cohort and
+sealed inputs. Multi-platform CI, typing and release checks remain Batch 4 work.
 
-## Synthetic benchmark reproduction from a wheel
+## Benchmark reproduction from a wheel
 
 After building, run the committed verification script with a new output folder:
 
 ```sh
-uv run --locked python scripts/reproduce_benchmark.py --wheel dist/conformal_pathways-0.3.0.dev0-py3-none-any.whl --out artifacts/batch3/isolated
-uv run --locked python -m conformal_pathways.benchmarks compare artifacts/batch3/primary/synthetic artifacts/batch3/isolated/synthetic
+uv run --locked python scripts/reproduce_benchmark.py --config experiments/batch3-v2.json --suite synthetic --wheel dist/conformal_pathways-0.3.0.dev0-py3-none-any.whl --out artifacts/batch3-v2/independent-synthetic
+uv run --locked python -m conformal_pathways.benchmarks compare artifacts/batch3-v2/primary/synthetic artifacts/batch3-v2/independent-synthetic/synthetic
 ```
 
 The script archives the requested Git revision (`HEAD` by default), installs a
@@ -106,3 +105,17 @@ records, and environment remain local for inspection. Complete the primary run
 using the protocol commands first. Use the committed matching protocol/source;
 post-freeze scientific changes fail verification rather than silently changing
 the experiment. No real dataset or model weights are needed for this check.
+
+For the real suite, pass `--suite real --data-root "$DATA_ROOT"` and a new output
+directory. The script installs the locked imaging extra, uses the cached
+checkpoint, blocks Python network connection/resolution/bind/send events and
+extracts all features again. It does not borrow a feature cache or model from the
+primary run. Verify both bundles with `compare`; the frozen tolerances must not
+be widened in response to results. The same-host repeat does not establish
+cross-platform reproducibility.
+
+Wrap each command with `scripts/run_monitored.py --record /path/to/new-memory.json
+--log /path/to/new-run.log -- COMMAND ...` to record resident memory and stop the
+new command's process group if it exceeds 8 GiB or macOS reports critical memory
+pressure. The guard checks every two seconds by default; its sampled RSS is an
+operational bound, not a precise allocation profiler. Run suites sequentially.

@@ -1,10 +1,14 @@
-# Batch 3 verification
+# Batch 3 v1 verification (historical)
+
+The subsequent [v2 amendment](batch3-v2-amendment.md) resolves the input blocker
+under a new freeze. [V2 verification](batch-3-v2-verification.md) records the
+completed synthetic and real suites; the record below describes v1 only.
 
 Recorded 2026-09-08 for version `0.3.0.dev0`. **The synthetic portion is complete;
 the real-data extension is blocked by duplicate images and conflicting labels.** This is not public-release
 clearance. The [machine-readable record](../evidence/batch3-verification.json)
 contains the earlier synthetic verification and offline-input status. The
-[later input audit](batch-3-input-audit.md) records the current blocker.
+[later input audit](batch-3-input-audit.md) records the blocker encountered at that stage.
 
 ## Results and independent reproduction
 

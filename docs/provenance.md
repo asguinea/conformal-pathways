@@ -1,6 +1,6 @@
 # Provenance and licensing inventory
 
-Inventory date: 2026-09-08. This records what is included and what remains to be
+Inventory date: 2026-09-08; updated for Batch 3 v2 on 2026-09-09. This records what is included and what remains to be
 verified; it is not redistribution clearance.
 
 ## Project source
@@ -31,8 +31,9 @@ prevent Git publication or replace the release review.
 | Synthetic records / solid-color test images | Generated at runtime | No real participant records or downloaded imagery |
 | Real dataset images and annotations | No | Obtain independently under the relevant terms |
 | Dataset manifests, patient IDs, cached embeddings, model weights | No | Distribution rights and privacy review required before adding any derived asset |
-| Synthetic benchmark summaries, plots, and provenance | Yes | Generated under a frozen protocol; no real participant records. See [evidence](../evidence/batch3-v1/README.md) |
-| Raw experiment traces and any real-data derived outputs | No | Kept as local artifacts; independent rights/privacy review required before adding derived real-data assets |
+| Synthetic benchmark summaries, plots, and provenance | Yes | Generated under frozen protocols; no real participant records. Historical v1 and current v2 evidence are retained. |
+| Aggregate real benchmark metrics and input/exclusion digests | Local release candidate | Compact metrics and content digests only, with no individual source-image rows. Rights/privacy review remains part of Batch 4 before public distribution. |
+| Raw real experiment traces, predictions, fitted-model details, feature matrices and individual exclusions | No | Kept in ignored local artifacts; excluded from the source distribution |
 | Vendored third-party libraries | No | Installed from public registry; versions and hashes in `uv.lock` |
 
 ## Dataset adapters
@@ -43,11 +44,11 @@ sources, and permitted uses must be recorded before a dataset benchmark.
 
 | Adapter | Provenance entry point | Current label interpretation | Outstanding checks |
 | --- | --- | --- | --- |
-| IDRiD | [Provider portal](https://idrid.grand-challenge.org/) | Retinopathy grade; macular-edema risk converted to Boolean | Provider terms and grading semantics are recorded in [dataset evidence](dataset-evidence.md); complete image hashing and real runs await offline inputs. The risk label remains a proxy. |
+| IDRiD | [Provider portal](https://idrid.grand-challenge.org/) | Retinopathy grade; macular-edema risk converted to Boolean | Provider terms and grading semantics are recorded in [dataset evidence](dataset-evidence.md); raw and retained images are now hashed and sealed under the disclosed v2 exclusions. The risk label remains a proxy. |
 | Messidor-2 | [ADCIS](https://www.adcis.net/en/third-party/messidor2/) | Severity and binary adjudicated DME from a caller-supplied annotation CSV | Review image terms and the separate origin/terms of the actual annotation file. |
 | EyePACS | [Kaggle competition](https://www.kaggle.com/competitions/diabetic-retinopathy-detection) | Retinopathy grade; DME unavailable | Record exact source and accepted access terms; verify patient pairing from IDs. |
 | REFUGE | [Provider portal](https://refuge.grand-challenge.org/) | Folder labels mapped to illustrative high/low status | Portal retrieval was unavailable during this inventory; verify access terms and avoid interpreting a disease class as a clinical risk estimate. |
-| RIM-ONE DL | [Maintainer repository](https://github.com/miag-ull/rim-one-dl) | Folder labels mapped to illustrative high/low status | Terms and the planned provider partition are recorded in [dataset evidence](dataset-evidence.md). Image hashing and participant linkage remain unverified. |
+| RIM-ONE DL | [Maintainer repository](https://github.com/miag-ull/rim-one-dl) | Folder labels mapped to illustrative high/low status | Terms and the planned provider partition are recorded in [dataset evidence](dataset-evidence.md). Image content is now hashed and sealed; participant linkage remains unverified. |
 
 Provider links are provenance leads, not legal conclusions. Do not infer that
 public download availability permits redistribution. No real dataset was downloaded
@@ -68,8 +69,9 @@ The [torchvision model documentation](https://docs.pytorch.org/vision/stable/mod
 distinguishes pretrained assets and their use conditions from library code.
 The corrected extractor requests explicit `IMAGENET1K_V2` weights and the
 associated transform. Loading failures propagate. A separately seeded random
-baseline is explicit in provenance. Generated-image CPU checks passed in Batch 2;
-real pretrained extraction and dataset-level reproduction remain Batch 3 work.
+baseline is explicit in provenance. Generated-image CPU checks passed in Batch 2. Batch 3 v2 independently re-extracted
+both real feature matrices on CPU with exact equality; this does not establish
+accelerator or cross-platform reproducibility.
 
 ## Public-release decisions still required
 

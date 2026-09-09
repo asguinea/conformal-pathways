@@ -6,7 +6,7 @@ The project provides small branching workflows, calibration and path-filtering
 code, dataset adapters, and an evaluation harness. Its first examples use
 illustrative retinal decision workflows with three stages.
 
-**Development status: synthetic evidence reproduced; real-image evaluation pending.**
+**Development status: Batch 3 reproduced; public-release review pending.**
 Version 0.3.0.dev0 evaluates complete action sequences from explicitly declared
 entry observations. Hypothetical tests do not reveal retrospective labels.
 Calibration uses one maximum reference-path score per declared group and stage;
@@ -16,17 +16,24 @@ The [method and conditional coverage argument](docs/method.md) define the exact
 inclusion event. The [toy rules](docs/toy-rules.md) are illustrative surrogates,
 with no validated clinical interpretation. Adaptive replanning and online
 coverage are outside this version's scope. See the [claim register](docs/claims.md)
-and [Batch 3 verification](docs/batch-3-verification.md).
+and [Batch 3 verification](docs/batch-3-v2-verification.md).
 
-The [frozen synthetic benchmark](evidence/batch3-v1/README.md) contains 5,760
-comparison records, reproduced from a separately installed wheel with network
-access blocked. It supports mechanism checks under an invented sampling model.
-It does not establish an advantage for the combined score over the model-only
-baseline or clinical safety; see [results and limitations](docs/batch-3-results.md).
-The dataset files are now local, but the input audit found duplicate IDRiD
-images and conflicting labels, including overlap between provider training and
-test partitions. Real-image fitting remains blocked; see the
-[input audit](docs/batch-3-input-audit.md).
+The [current benchmark](evidence/batch3-v2/README.md) contains 5,760 synthetic
+and 80 real-image comparison records under a frozen protocol. Both suites
+reproduce exactly from separate installed-wheel environments on the same host, including
+fresh real feature extraction. The real runs use
+506 filtered IDRiD images and 485 RIM-ONE images, a class-prior control and
+frozen ResNet-50 features with logistic regression. A disclosed
+[input amendment](docs/batch3-v2-amendment.md) excludes ten duplicate/conflicting
+IDRiD copies from analysis manifests while preserving all source files.
+
+The results do not establish superiority or clinical safety. On filtered IDRiD,
+`main` has smaller candidate sets but lower mean reference inclusion than
+`model_only` (84.9% versus 92.0%); on RIM-ONE their reported metrics agree.
+The IDRiD result is below the nominal 90% level. See
+[results and limitations](docs/batch-3-v2-results.md) for the complete interpretation,
+including why fixed-test seed ranges are not confidence intervals. Historical
+[v1 synthetic evidence](evidence/batch3-v1/README.md) remains available.
 
 ## Quick start
 
@@ -83,13 +90,16 @@ checker. Its outputs are not measurements of clinical outcomes.
 - [Four-batch roadmap](docs/roadmap.md)
 - [Batch 1 verification](docs/batch-1-verification.md)
 - [Batch 2 verification](docs/batch-2-verification.md)
-- [Experiment protocol](docs/experiment-protocol.md)
+- [Current protocol amendment](docs/batch3-v2-amendment.md) and [original protocol](docs/experiment-protocol.md)
 - [Dataset evidence and exclusions](docs/dataset-evidence.md)
-- [Batch 3 verification](docs/batch-3-verification.md)
-- [Synthetic results and limitations](docs/batch-3-results.md)
+- [Batch 3 verification](docs/batch-3-v2-verification.md)
+- [Current results and limitations](docs/batch-3-v2-results.md)
+- [Historical synthetic interpretation](docs/batch-3-results.md)
 
-The included evidence consists of synthetic summaries, plots, and provenance.
+The included evidence consists of synthetic records, aggregate real benchmark
+metrics, plots, and provenance digests.
 No real dataset images, source annotations, embeddings, trained models, or raw
-experiment traces are distributed here. Code ownership and the project license remain to be
-confirmed before a public release; see the provenance inventory. This is a
+experiment traces are distributed here. Code ownership, the project license and
+redistribution review remain to be completed before public release; see the
+provenance inventory. This is a
 development project, not a clinical decision support product.

@@ -1,5 +1,8 @@
 # Real-data input audit
 
+Historical v1 audit. The accepted resolution is specified separately in the
+[v2 amendment](batch3-v2-amendment.md); this failed audit remains preserved.
+
 Recorded 2026-09-08, after all required images became available locally.
 **The frozen input audit failed before real model fitting.** No real input seal,
 pretrained feature extraction, fitted real model, or real benchmark result was
