@@ -29,7 +29,7 @@ execution, information-flow checks, and reproducible fixture exports. See the
 [extension verification](batch-2-sequential-verification.md). This preserves the
 earlier corrections and baseline instead of replacing their recorded evidence.
 
-## Batch 3 — Reproducible evidence (entry baseline complete; sequential runs pending)
+## Batch 3 — Reproducible evidence (entry baseline and sequential experiments complete)
 
 Freeze a protocol and configurations. Run synthetic mechanism checks and any
 eligible dataset benchmarks from identified inputs. Record split membership,
@@ -48,15 +48,20 @@ no clinical-safety or superiority claim is promoted. See
 [verification](batch-3-v2-verification.md) and
 [results and limitations](batch-3-v2-results.md).
 
-Next: freeze a separate protocol for `result-aware-pathways-v1`; compare the
-result-aware selectors with the entry-only baseline using the same eligible
-cohorts, splits, and model predictions where applicable. Pre-specify diagnostic
-simulation, missing/error-result sensitivity, action/test usage, reference
-retention, existential toy acceptability, selected violations, and abstention
-denominators. Run and reproduce those experiments before making quantitative
-claims about result-aware decisions. Existing data audits, filtered manifests,
-feature verification, and entry-only evidence remain useful completed work.
-No new sequential benchmark is implied by the Batch 2 fixtures.
+The separately frozen [sequential protocol](sequential-experiment-protocol.md)
+is now complete: 11,392 synthetic comparisons and 400 real-image simulations
+reproduce exactly, including fresh real features. The same audited cohorts,
+splits and model predictions support matched diagnostic-information controls,
+filter ablations and the entry-only baseline. Missing and incorrect results,
+test usage, reference retention, selected violations and abstention are reported
+separately. All 80 legacy real-image baselines remain unchanged. See
+[verification](batch-3-sequential-verification.md) and
+[results and limitations](batch-3-sequential-results.md).
+
+Existing correctness fixes, data audits and baseline evidence remain completed
+work. No repeat of Batch 2 or Batch 3 is required for the currently stated
+research scope. Only Batch 4's public-release preparation remains; stronger
+clinical or universal-performance claims would require different evidence.
 
 The entry-only source snapshot is `baseline-entry-v2` (`1a798b9`). Its frozen
 protocol must be executed from that matching source and wheel. Do not refresh

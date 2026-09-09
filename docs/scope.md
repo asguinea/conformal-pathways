@@ -31,9 +31,10 @@ that uncertainty is informative or that a clinical recommendation is correct.
   path. These require separate evidence.
 - Dataset labels may be retrospective proxies. A grading label is not a
   recorded response to a diagnostic action or a treatment-outcome label.
-- The entry-only baseline has independently reproduced descriptive results on
-  one host. They do not validate the result-aware extension. Its scientific
-  evaluation requires a new frozen Batch 3 protocol and independent runs.
+- Both the entry-only baseline and the result-aware extension have separately
+  frozen, independently reproduced descriptive experiments on one host. The
+  result-aware experiments explicitly simulate diagnostic proxies, including
+  unavailable and incorrect results. See [results](batch-3-sequential-results.md).
 
 ## Completion criteria
 

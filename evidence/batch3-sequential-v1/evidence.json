@@ -1,0 +1,439 @@
+{
+  "files": {
+    "README.md": "55fba6d1ccf77f9f396e6e53364daf88c540c69236f54372628ea20243c7c562",
+    "paired.csv": "a746836db494483c069e5c64191fb588a3360459d7cb1a63d69a0674642339e2",
+    "real-results.png": "7b27aa8f38a6ab2b06c7eb17e0d23572443e39679273716cf825591e6a0a7f63",
+    "summary.csv": "982268b7bd66be6138db32428ec835c5914d6e79b7555bc5c53a45f5ff303c4c",
+    "summary.json": "93deaa2b858fe813fc2ce51b1ed9c41ec3cf5bd7f86484e5dda5f845cc87be53",
+    "trials.jsonl": "939886e174e8d9f7fd8bdb3c7428d088e527f9e93b6202255ebe247b2e0fd5ca"
+  },
+  "freeze": {
+    "files": {
+      "docs/sequential-experiment-protocol.md": "27d46b8fc814519ee5997389ef3d2bdcb075d4a467d9e3aba4f62068726c6e98",
+      "docs/sequential-method.md": "23b1bbc73a8fcf62baf9b47406154ea9b2f169df02df99f877b240a5ee01d34b",
+      "experiments/batch3-inputs-v2.json": "141225fa42da62932951720615206fbdcd5d53550d8db076cf700a5e27566be2",
+      "experiments/batch3-sequential-v1.json": "cd7e59ef259f0b723797ac8f3d32e4f642f88479f48ca07a4ea3392e0fda90fe",
+      "pyproject.toml": "d0c8ef53f6020ef16859316d224177873339e12ca21330d16e3efdf1ed38cb97",
+      "scripts/reproduce_benchmark.py": "64b53df8fd13ed7364fe1725de3c941ce2c676d3bb02bb9d926974d31385f4d2",
+      "scripts/run_monitored.py": "dcf0c73598f2a12451001661eb6677e564fad5176c589d81cc1f8cedf8a42dd6",
+      "src/conformal_pathways/__init__.py": "8be1f00f4c217f163ef6de7d272c14f135275173b0645e35f357cacab6cd222c",
+      "src/conformal_pathways/__main__.py": "53b2c0172988621399699668e46ce4e9823f3b3861421855cfe7f90c597a93b9",
+      "src/conformal_pathways/benchmarks/__init__.py": "c845e2c5ce196c50f7987ce7f26a7c0f780f4cc76843e1397717c97f771cfb15",
+      "src/conformal_pathways/benchmarks/__main__.py": "66daa32f2c94c61b6f5a3de70dc4299caad208ba8c3b17e7db1e5900b32427a9",
+      "src/conformal_pathways/benchmarks/datasets.py": "7615c85846e1b96b901a29e312149679343bcd2bc5553078ed26c769967aa660",
+      "src/conformal_pathways/benchmarks/provenance.py": "df10eb302f6d828f07b760915ee55564b1d057433ccd0c56ac583288b38c5f89",
+      "src/conformal_pathways/benchmarks/reporting.py": "cd1fe00254b65330231f99bed435c99f4d89010d02bc2ac4eb67679f658e22c5",
+      "src/conformal_pathways/benchmarks/runner.py": "aab33e8a2b6f8bfb18fdd60296c50c02a07b47390b9069eb75a00082e01d88df",
+      "src/conformal_pathways/benchmarks/sequential.py": "0c2c6b1b850371eac62b524908e840684f8d6e5169f17cfc4f4c3933792728cc",
+      "src/conformal_pathways/benchmarks/sequential_design.py": "2cbbf5cc7d3e4286f47dab1163e5700f6620e2112441157fa49defdff6d5544d",
+      "src/conformal_pathways/benchmarks/sequential_reporting.py": "6aebdff959448d40fd09d097b077b7183f0c8a6291f1b096c68375cc8f8f9ab0",
+      "src/conformal_pathways/benchmarks/sequential_runner.py": "31339119381c3b3adc2682572e9e9fd5dcf80a56777057f52fd523f34644d7a5",
+      "src/conformal_pathways/benchmarks/statistics.py": "d4a49b607a873364ee26b623d36d935d1e0991e5e36ec7e06b99a472fec93e0a",
+      "src/conformal_pathways/benchmarks/synthetic.py": "40c0d4680f80aea46f9d7dee001e4c904b22b28f1f3a3fcf7bdb7f59dc356c82",
+      "src/conformal_pathways/cli.py": "e35093e301da0abd98804363d9717bb2ba5750aeaac242f3c0fd4b6cf46d7481",
+      "src/conformal_pathways/conformal/__init__.py": "a7de0320a68183aed6b05aa8c53d122ccc10f059180e3f64ab24071e6a1db03f",
+      "src/conformal_pathways/conformal/calibration.py": "7ab60956de773063e1a827dad93c4a5ee6883c609942a7268d684e83b81df684",
+      "src/conformal_pathways/conformal/sequential.py": "37509c7b63d06bbcc4412e2c3fb1cf38fc2c5ef275f432eba58041a1f108fda7",
+      "src/conformal_pathways/conformal/thresholds.py": "c9c8554d3dc830125a4ac74440cc998f708c11c653b37ca6f51cd7a096a03a6d",
+      "src/conformal_pathways/data/__init__.py": "2168cd9fb76fae63a91b863315ab5749450d91a0fe064a73005dc8277041713c",
+      "src/conformal_pathways/data/loaders.py": "1a5f4184692701da1e621e154515811fd15616dbfb33e72d92a5842c5974d845",
+      "src/conformal_pathways/data/schema.py": "dd342f9ac771118e8dfe33636e09e29f019c91574d5ef612f5214eeff390ce8e",
+      "src/conformal_pathways/data/splits.py": "c48f5c96eaeacd0f2b3dd3b5ef3496ed363ea0cbe9efe2378892af1ffc33334c",
+      "src/conformal_pathways/demo_oracle.py": "9609d606b597894aaf062f9cc3c953351e336ea557a2460515eb04467681dd37",
+      "src/conformal_pathways/eval/__init__.py": "a7856ebaabda4831eca1d0804a692293fdd332e7134c81ccf2ca363633598e1b",
+      "src/conformal_pathways/eval/ablation_alpha_allocation.py": "bae58152264a97ffe20130646d219558ec64144ad135fa029afb3668439c7a88",
+      "src/conformal_pathways/eval/baselines.py": "becbf6029768873ef0784e1f2b3eee69d87bff085dad1ab57c28c30c13a7d91f",
+      "src/conformal_pathways/eval/case_traces.py": "95895bae94a8c5ac8f8b8441e3dce877e67e48ced7317b99f9f16e53647d118f",
+      "src/conformal_pathways/eval/experiment.py": "2915139125a063b48a75c7c20a20b59b79b45f6af5f8abb2a0170bf39e475678",
+      "src/conformal_pathways/eval/grid_runner.py": "b70ae7e25367dce9f568ee151c9251cb3383ec9b98f997d3d701c5cb3eb9132d",
+      "src/conformal_pathways/eval/group_metrics.py": "525506337c9b8060b36eb0e56f045ed7c7d4685349d8a3e23812342ae2cb470d",
+      "src/conformal_pathways/eval/introspection.py": "c482cfa9e8fdc3e2bcbadad0c0ebcc56c6880381e92ef2e7ae589542ea4559fd",
+      "src/conformal_pathways/eval/metrics.py": "ffb857ae926d84f4ac34323bbc5461d287b7f4fb114bdf22109597337acc6e75",
+      "src/conformal_pathways/eval/per_sample_export.py": "7cfa2cc03a5bdde77cbf18db00110c7e44eb62bea74a9f382eda107a9127833f",
+      "src/conformal_pathways/eval/run_from_manifest.py": "f10882b5028d169881a0f8f85b1d3eb2b070bf5d80dcd0965db9df507a40e902",
+      "src/conformal_pathways/eval/run_with_embeddings.py": "f0656e63dd16fcd9c12f27daf58cc5087343a3eee696b5438014038fb4b7689c",
+      "src/conformal_pathways/eval/runner.py": "b0c254c374914064abcac0588f6e91ff994536448cc0bcb61723432678f297ce",
+      "src/conformal_pathways/eval/runtime.py": "658be9f518b9e39e6a18aed65e6d12b3ee95811ee9b490edd07f0cb9bcb1281f",
+      "src/conformal_pathways/eval/selection_policies.py": "3ab29ee65deea9f0528a2533c4e233d31835133207da6200faceb8799677a643",
+      "src/conformal_pathways/features/__init__.py": "2620198a7d1bc269fb0ab374b816f7bf9f2c2384975c2f651956f30d1a4292ff",
+      "src/conformal_pathways/features/cache.py": "d8d0de07574a7fc94ef11266318f2e180a49d44f14a55aecb1db305941580415",
+      "src/conformal_pathways/features/extract_embeddings.py": "d1a3321f50576120dae2d876ccf549779d74a65b25062bb08c201553691c5674",
+      "src/conformal_pathways/features/image_dataset.py": "222d3a6dc2194bb58b4e177d0e19bf8c7c9f68d0ca8f92678ff5b8d33d2f5d1d",
+      "src/conformal_pathways/ingest/__init__.py": "54feaba7f2010c82282291005bba0bed6b64da484955b1a3ac1bd023aefb6e42",
+      "src/conformal_pathways/ingest/base.py": "9616d04003356121734a9b25286ea48041fede4ca8774cb1b498f6adeef3ca0f",
+      "src/conformal_pathways/ingest/cli.py": "57686630fa662dd4beeb9437106aa816e6d8ad1c4ea146397b0c0c45488422da",
+      "src/conformal_pathways/ingest/eyepacs.py": "8e286fc78386b034c5ed0d6c5ae3d97427a4b7d2dd56bf11d085e03fad7b5d85",
+      "src/conformal_pathways/ingest/idrid.py": "b2f85e7889b0254a2d0e5163f3157d9ff566dafd15fc0331a242b61de3f17b46",
+      "src/conformal_pathways/ingest/messidor2.py": "8c67240e42c3f889932513e9370aff5f2c18101b2193a721212f0f3ea22909f3",
+      "src/conformal_pathways/ingest/refuge.py": "1e04729003f98270d885b26913dfc8016f0e176a94d0316266ae2013ca1ae7ee",
+      "src/conformal_pathways/ingest/registry.py": "d014fb0154fa396874ea74a297f70d8f60f82cb48bbc8152563a8139de3f51ee",
+      "src/conformal_pathways/ingest/rimone.py": "3d141002e3954537990db0f989f2c67769ea626716f730cf080c65f9a9756454",
+      "src/conformal_pathways/models/__init__.py": "ba6bb3b159570422b5c0889bb64fbe6a29516afb4491b5291edca2c2b0607e7f",
+      "src/conformal_pathways/models/base.py": "2f3307e1401997472afa3c160da753a4d6f658a6b129bb6e2797e80911c88593",
+      "src/conformal_pathways/models/embedding_predictor.py": "11448f9e8ba0e337c9a91cb011c45d78c822b79ef9c06579a30941036a4eb4e8",
+      "src/conformal_pathways/models/trivial.py": "e842e59ac4ba70955e9c85b190cd23253c7c4d8d650a89f9e82fa5457aa21036",
+      "src/conformal_pathways/plots/__init__.py": "b7d01ab9b9877007016a9ca1287420373f63be559f468567b9c8a7fb7f5b9a1e",
+      "src/conformal_pathways/plots/plot_curves.py": "ad7ce79073a02895eea95094161b3d336e3be46d751332038276abeef99d8fb5",
+      "src/conformal_pathways/safety/__init__.py": "bbfa0af72209d1327e7f139e78dc8e53ab0d397bf882c7ca274ec8162b69de65",
+      "src/conformal_pathways/safety/oracle.py": "e26506d10e09a40da0938ce42d83689a1fd4f55e726507411583bd7c1046c63c",
+      "src/conformal_pathways/safety/oracle_policy.py": "7e1c5e9d90c5125bac756161c0ff49f1ae5b8c011ee5aff18c14e123bb5996e8",
+      "src/conformal_pathways/safety/patterns.py": "1a0e6315615e7044b35ec49d3b17c1fde800849078b13a6c936321e9d60803c6",
+      "src/conformal_pathways/scoring/__init__.py": "08f602934603cdfb0d411345acc8b91e80cd7a66bb05fccdf428fcc7867041d2",
+      "src/conformal_pathways/scoring/nonconformity.py": "d7c06dd8f57dbad4ee2b179d6049ee16fd6037c83bc321bd9979cd6fcf61d326",
+      "src/conformal_pathways/sequential/__init__.py": "49f770f6dc9f678538dc8b1abba8e6d928e752ec5f63bb5b91af01847b528fbe",
+      "src/conformal_pathways/sequential/calibration.py": "5fee1f5aec2e55b4653084e881c8280b8e9c2ca26c1144d1301cc5a8f5515844",
+      "src/conformal_pathways/sequential/demo.py": "bc78c9b2361ebac0eaff1454ba706f069e2318329a0066e6507971f0dfcfc6e1",
+      "src/conformal_pathways/sequential/engine.py": "40f8c3239c0fcecbbce0ff38e1eeaf028e3f0525bcd59c77aa5f606fc154f6a4",
+      "src/conformal_pathways/sequential/evaluation.py": "85b450c0928a2533e959bcf1408e0a3d9200347be9b3673d080df3fc7268cfb8",
+      "src/conformal_pathways/sequential/simulation.py": "e0c441c852cf4f445780c1bbcd9a2a4dd1a10bd2dbb74c6eaadc91ff1451221d",
+      "src/conformal_pathways/workflows/__init__.py": "44fa4e9693fd245218fb54e06fe5b2166df8dc9fe9a614089fa6a950e289e3e5",
+      "src/conformal_pathways/workflows/core.py": "b4b6422bb733a9d486f3fe029bcf2131a98225466233c6b0436a571347b0c505",
+      "src/conformal_pathways/workflows/dr.py": "68b273debfc110886cd580e5fe53026e28cd6942e946aa3594d4ecb28f206287",
+      "src/conformal_pathways/workflows/glaucoma.py": "c0f63fd88592118c4f6bda0b7e1fb850b0cd1e6680816fc2c4b258d453c4365c",
+      "uv.lock": "86afe623f509eb31e9204874a939d49adf2e98c348cbb3193acb445fcc7b2ad3"
+    },
+    "schema_version": 1,
+    "source_revision": "68b44d35d8e274615cb292e7cccabfe0940b3fd8",
+    "source_sha256": "9a7152d2931ccfc0aeec5ef5fd3de036e70365f04208c79430488f386bba3328"
+  },
+  "protocol": {
+    "algorithm_version": "result-aware-pathways-v1",
+    "alpha_allocation": "uniform",
+    "entry_baseline_version": "entry-pathways-v2",
+    "entry_selection_policies": [
+      "min_total_score",
+      "observed_rules_first"
+    ],
+    "mechanisms": {
+      "error20": {
+        "flip_probability": 0.2,
+        "unavailable_probability": 0.0
+      },
+      "missing20": {
+        "flip_probability": 0.0,
+        "unavailable_probability": 0.2
+      },
+      "perfect": {
+        "flip_probability": 0.0,
+        "unavailable_probability": 0.0
+      },
+      "unavailable": {
+        "flip_probability": 0.0,
+        "unavailable_probability": 1.0
+      }
+    },
+    "name": "batch3-sequential-v1",
+    "primary_alpha": 0.1,
+    "protocol_documents": [
+      "docs/sequential-experiment-protocol.md",
+      "docs/sequential-method.md"
+    ],
+    "real": {
+      "alphas": [
+        0.1
+      ],
+      "annotation_sha256": {
+        "idrid_test": "ced1cb8f66e126e98edde38a9b10843e6e8c3a76795b17dd57ca5abbff8ff602",
+        "idrid_train": "789fb5a5aca296f6e01db9eb930cc41a063c681c284dbf3675628afc2a2d4ffe"
+      },
+      "batch_size": 16,
+      "checkpoint_sha256": "11ad3fa62ca79e40addfd354a8ec4b7c75143b3038b8d2a807fbc68deab379ca",
+      "datasets": [
+        "idrid",
+        "rimone"
+      ],
+      "device": "cpu",
+      "duplicate_policy": {
+        "idrid": "exclude_conflicts_keep_lexicographic_v1",
+        "rimone": "reject"
+      },
+      "expected_analysis_partitions": {
+        "idrid": {
+          "test": 102,
+          "train": 404
+        },
+        "rimone": {
+          "test": 146,
+          "train": 339
+        }
+      },
+      "expected_exclusions": {
+        "idrid": {
+          "conflicting_source_labels": 8,
+          "redundant_agreeing_duplicate": 2
+        },
+        "rimone": {}
+      },
+      "expected_partitions": {
+        "idrid": {
+          "test": 103,
+          "train": 413
+        },
+        "rimone": {
+          "test": 146,
+          "train": 339
+        }
+      },
+      "input_lock": "batch3-inputs-v2.json",
+      "logreg_C": 1.0,
+      "mechanisms": [
+        "perfect",
+        "missing20",
+        "error20",
+        "unavailable"
+      ],
+      "models": [
+        "class_prior",
+        "resnet50_logreg"
+      ],
+      "num_workers": 0,
+      "ratios": [
+        0.6,
+        0.2,
+        0.2
+      ],
+      "seeds": [
+        101,
+        202,
+        303,
+        404,
+        505
+      ],
+      "torch_threads": 2,
+      "weights": "IMAGENET1K_V2"
+    },
+    "reproduction": {
+      "excluded_report_fields": [
+        "report_sha256",
+        "provenance.environment"
+      ],
+      "features": "exact",
+      "scientific_records": "exact"
+    },
+    "reused_input_lock": "experiments/batch3-inputs-v2.json",
+    "rule_version": "toy-rules-v2",
+    "schema_version": 1,
+    "selection_policies": [
+      "min_stage_score",
+      "observed_rules_first"
+    ],
+    "statistics": {
+      "binary_interval": "wilson",
+      "bounded_mean_interval": "hoeffding",
+      "confidence": 0.95,
+      "paired_unit": "independent_synthetic_repetition",
+      "real_uncertainty": "descriptive_seed_range_only"
+    },
+    "synthetic": {
+      "dr_dme_probability": [
+        0.03,
+        0.1,
+        0.3,
+        0.6,
+        0.8
+      ],
+      "dr_prior": [
+        0.3,
+        0.15,
+        0.25,
+        0.15,
+        0.15
+      ],
+      "dr_signal_centers": [
+        -2,
+        -1,
+        0,
+        1,
+        2
+      ],
+      "dr_signal_sd": 0.8,
+      "glaucoma_high_probability": 0.35,
+      "glaucoma_signal_centers": [
+        -1,
+        1
+      ],
+      "glaucoma_signal_sd": 1.0,
+      "members_per_group": 2,
+      "scenarios": [
+        {
+          "alphas": [
+            0.1
+          ],
+          "cal_groups": 99,
+          "mechanisms": [
+            "perfect",
+            "missing20",
+            "error20",
+            "unavailable"
+          ],
+          "missing_probability": 0.0,
+          "models": [
+            "class_prior",
+            "known_signal"
+          ],
+          "name": "iid",
+          "repetitions": 128,
+          "test_groups": 1,
+          "train_groups": 50
+        },
+        {
+          "alphas": [
+            0.1
+          ],
+          "cal_groups": 99,
+          "mechanisms": [
+            "perfect",
+            "unavailable"
+          ],
+          "missing_probability": 0.2,
+          "models": [
+            "known_signal"
+          ],
+          "name": "missing_labels",
+          "repetitions": 32,
+          "test_groups": 1,
+          "train_groups": 50
+        },
+        {
+          "alphas": [
+            0.1
+          ],
+          "cal_groups": 9,
+          "mechanisms": [
+            "perfect",
+            "unavailable"
+          ],
+          "missing_probability": 0.0,
+          "models": [
+            "known_signal"
+          ],
+          "name": "tiny_calibration",
+          "repetitions": 16,
+          "test_groups": 1,
+          "train_groups": 50
+        }
+      ],
+      "seed_base": 2026090900
+    },
+    "variants": [
+      "main",
+      "model_only",
+      "rules_only",
+      "no_conformal"
+    ],
+    "workflows": [
+      "dr_workflow",
+      "glaucoma_workflow"
+    ]
+  },
+  "suites": [
+    {
+      "actual_records": 11392,
+      "detail": {},
+      "elapsed_seconds": 267.67123812499995,
+      "environment": {
+        "machine": "arm64",
+        "packages": {
+          "conformal-pathways": "0.4.0.dev0",
+          "matplotlib": "3.11.1",
+          "numpy": "2.5.3",
+          "pandas": "3.0.5",
+          "pillow": "12.3.0",
+          "scikit-learn": "1.9.0",
+          "torch": "2.14.0",
+          "torchvision": "0.29.0"
+        },
+        "python": "3.12.13",
+        "system": "Darwin"
+      },
+      "suite": "synthetic"
+    },
+    {
+      "actual_records": 400,
+      "detail": {
+        "checkpoint": {
+          "name": "IMAGENET1K_V2",
+          "sha256": "11ad3fa62ca79e40addfd354a8ec4b7c75143b3038b8d2a807fbc68deab379ca",
+          "url": "https://download.pytorch.org/models/resnet50-11ad3fa6.pth"
+        },
+        "dataset_audits": {
+          "idrid": {
+            "analysis_partition_counts": {
+              "test": 102,
+              "train": 404
+            },
+            "annotations": {
+              "idrid_test": "ced1cb8f66e126e98edde38a9b10843e6e8c3a76795b17dd57ca5abbff8ff602",
+              "idrid_train": "789fb5a5aca296f6e01db9eb930cc41a063c681c284dbf3675628afc2a2d4ffe"
+            },
+            "dataset": "idrid",
+            "duplicate_policy": "exclude_conflicts_keep_lexicographic_v1",
+            "entry_observations": [],
+            "exclusion_counts": {
+              "conflicting_source_labels": 8,
+              "redundant_agreeing_duplicate": 2
+            },
+            "exclusions_sha256": "01e154cd7cbb7d6ba09d2c803039562f963c57de6d850b7021818ec2dd9afe69",
+            "group_identity": "sample_id_fallback; patient_linkage_unverified",
+            "images_sha256": "13562ce79aa20b13e63acd133d8e5944fd973f82206478f326efc3479cf9f6c3",
+            "inference_scope": "descriptive_filtered_provider_test_image_surrogate_metrics",
+            "label_interpretation": "DME risk grade > 0 proxy; not an OCT response",
+            "manifest_sha256": "0a046e1f3a8563308810474eb497bafa1955549e6ae5d54f722735480f8ef960",
+            "n_images": 506,
+            "provider_partition_counts": {
+              "test": 103,
+              "train": 413
+            },
+            "raw_images_sha256": "2ce838ff63e13c785d05eb7562f7f60aa3263bdd16f0e2e774f782804f158447",
+            "raw_manifest_sha256": "6c8c611e79ab6193ce90d507d8cade36eaba3e7047e92e05406b627627033679",
+            "workflow": "dr_workflow"
+          },
+          "rimone": {
+            "analysis_partition_counts": {
+              "test": 146,
+              "train": 339
+            },
+            "annotations": {
+              "label_source": "provider_directory_classes"
+            },
+            "dataset": "rimone",
+            "duplicate_policy": "reject",
+            "entry_observations": [],
+            "exclusion_counts": {},
+            "exclusions_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "group_identity": "sample_id_fallback; patient_linkage_unverified",
+            "images_sha256": "7f84324ab6d23add3dab0512b11e6575439b5e994d5d19cf94693c5c8a94c865",
+            "inference_scope": "descriptive_official_test_image_surrogate_metrics",
+            "label_interpretation": "disease class mapped to toy low/high; not a longitudinal risk estimate",
+            "manifest_sha256": "80d985e98c7c9a65c9c164beb7c80af293d3876a2ebb5d100536df57ec14b6de",
+            "n_images": 485,
+            "provider_partition_counts": {
+              "test": 146,
+              "train": 339
+            },
+            "raw_images_sha256": "7f84324ab6d23add3dab0512b11e6575439b5e994d5d19cf94693c5c8a94c865",
+            "raw_manifest_sha256": "80d985e98c7c9a65c9c164beb7c80af293d3876a2ebb5d100536df57ec14b6de",
+            "workflow": "glaucoma_workflow"
+          }
+        }
+      },
+      "elapsed_seconds": 253.35050841700286,
+      "environment": {
+        "machine": "arm64",
+        "packages": {
+          "conformal-pathways": "0.4.0.dev0",
+          "matplotlib": "3.11.1",
+          "numpy": "2.5.3",
+          "pandas": "3.0.5",
+          "pillow": "12.3.0",
+          "scikit-learn": "1.9.0",
+          "torch": "2.14.0",
+          "torchvision": "0.29.0"
+        },
+        "python": "3.12.13",
+        "system": "Darwin"
+      },
+      "suite": "real"
+    }
+  ]
+}

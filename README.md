@@ -6,7 +6,7 @@ The project provides small branching workflows, calibration and path-filtering
 code, dataset adapters, and an evaluation harness. Its first examples use
 illustrative retinal decision workflows with three stages.
 
-**Development status: sequential correctness extension; new benchmarks and public-release review pending.**
+**Development status: Batches 1–3 complete; public-release preparation pending.**
 Version 0.4.0.dev0 supports choosing a diagnostic action, receiving its result,
 and updating later decisions. Results enter only after the test is committed;
 skipped tests reveal nothing. Calibration follows the same reference histories,
@@ -20,6 +20,22 @@ of an actually selected sequence are measured separately. The
 Diagnostic results in offline evaluation are explicitly simulated proxies.
 See the [claim register](docs/claims.md) and
 [correctness verification](docs/batch-2-sequential-verification.md).
+
+The [result-aware benchmark](evidence/batch3-sequential-v1/README.md) contains
+11,392 synthetic comparisons and 400 real-image simulations. Both suites
+reproduce exactly from separate installed-wheel environments on the recorded
+host, including fresh real features. The protocol varies perfect, unavailable,
+and incorrect diagnostic proxy results with matched models, splits, and
+selectors. See [verification](docs/batch-3-sequential-verification.md) and
+[results and limitations](docs/batch-3-sequential-results.md).
+
+These experiments distinguish the value of diagnostic information from the
+effect of conformal filtering. Results can reduce candidate sets and selected
+toy violations, but gains depend on the workflow, selector, testing rate, and
+abstention. Incorrect results can worsen selections despite high reference
+retention. The evidence supports reproducible research simulations, not clinical
+safety or universal superiority. The matching source is tagged
+`sequential-benchmark-v1` (`8acc76d`).
 
 The preserved [entry-only baseline benchmark](evidence/batch3-v2/README.md) contains 5,760 synthetic
 and 80 real-image comparison records under a frozen protocol. Both suites
@@ -103,6 +119,9 @@ checker. Its outputs are not measurements of clinical outcomes.
 - [Batch 2 verification](docs/batch-2-verification.md)
 - [Sequential method and contract](docs/sequential-method.md)
 - [Batch 2 sequential extension verification](docs/batch-2-sequential-verification.md)
+- [Sequential experiment protocol](docs/sequential-experiment-protocol.md)
+- [Sequential results and limitations](docs/batch-3-sequential-results.md)
+- [Sequential experiment verification](docs/batch-3-sequential-verification.md)
 - [Current protocol amendment](docs/batch3-v2-amendment.md) and [original protocol](docs/experiment-protocol.md)
 - [Dataset evidence and exclusions](docs/dataset-evidence.md)
 - [Batch 3 verification](docs/batch-3-v2-verification.md)

@@ -89,7 +89,10 @@ and [v2 amendment](batch3-v2-amendment.md) define the preserved entry-only exper
 [dataset evidence](dataset-evidence.md) records the filtered IDRiD cohort and
 sealed inputs. Multi-platform CI, typing and release checks remain Batch 4 work.
 The [sequential extension](sequential-method.md) has separate correctness
-fixtures; its empirical benchmark and frozen protocol remain Batch 3 work.
+fixtures and a completed [frozen benchmark](sequential-experiment-protocol.md).
+Its [verification](batch-3-sequential-verification.md) records independent runs
+and exact scientific reproduction. Use `--engine sequential` with the
+reproduction script and the matching `sequential-benchmark-v1` source/wheel.
 
 ## Benchmark reproduction from a wheel
 
