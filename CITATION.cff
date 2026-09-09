@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "To cite this software, use this repository and the exact version or commit you used."
+type: software
+title: Conformal Pathways
+abstract: >-
+  Experimental Python tools for result-aware decision workflows, conformal
+  reference retention, and reproducible evaluation with simulated diagnostic
+  information. Includes synthetic experiments and descriptive image benchmarks.
+authors:
+  - family-names: Sanchez Guinea
+    given-names: Alejandro
+    alias: asguinea
+repository-code: "https://github.com/asguinea/conformal-pathways"
+url: "https://github.com/asguinea/conformal-pathways"
+license: Apache-2.0
+version: 0.4.0
+date-released: 2026-09-09
+keywords:
+  - conformal prediction
+  - reproducible research
+  - uncertainty quantification
+  - sequential decisions

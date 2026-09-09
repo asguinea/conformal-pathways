@@ -1,85 +1,72 @@
-# Provenance and licensing inventory
+# Provenance and distribution boundaries
 
-Inventory date: 2026-09-08; updated for Batch 3 v2 on 2026-09-09. This records what is included and what remains to be
-verified; it is not redistribution clearance.
+Release review: 2026-09-09, version 0.4.0.
 
-## Project source
+## Project source and license
 
-The starting source is a selectively migrated prototype supplied by the project
-owner. The migration includes the reusable Python modules, 36 synthetic test
-modules, and a result-plotting script. Package imports were renamed. Packaging,
-documentation, the small demo CLI, and installation verification were added here.
-The repository starts with a fresh history.
+Conformal Pathways is maintained by Alejandro Sanchez Guinea (`asguinea`). The
+starting source was a selectively migrated prototype supplied by the project
+owner. This repository has its own history and package namespace. The source
+inventory found no inherited copyright/license notices or vendored third-party
+implementation. This records the review, not a claim that absence of notices
+proves sole authorship.
 
-No explicit license or copyright notices were found in the migrated source at
-inventory time. That absence does not establish sole ownership. The owner still
-needs to confirm authorship, collaborators, organizational rights, and any
-third-party source adaptation. Preserve any attribution identified during that
-review. Select and add the public code license only after that confirmation.
+The maintainer selected Apache-2.0 for publication. [LICENSE](../LICENSE) contains
+the unmodified license, and [NOTICE](../NOTICE) identifies the project and dataset
+acknowledgments. The license applies to project-owned source and documentation;
+it does not grant rights to external datasets, pretrained assets, or dependencies.
+See the [Apache application guidance](https://www.apache.org/foundation/license-faq.html#Apply).
+Future contributions must identify third-party adaptations and their terms.
 
-No public repository URL, author identity, license grant, or citation metadata
-has been invented. A development-only package classifier blocks accidental PyPI
-upload through tooling that honors `Private :: Do Not Upload`; it does not
-prevent Git publication or replace the release review.
+## Distributed assets
 
-## Included and excluded assets
+| Asset | Distribution decision |
+| --- | --- |
+| Project Python source, tests, scripts and documentation | Included under Apache-2.0 |
+| Synthetic fixtures | Generated at runtime; no downloaded images or participant records |
+| Synthetic and aggregate real-image evidence | Included: trial-level aggregate numerators/denominators, calibration thresholds, statistical tables, research figures and provenance digests |
+| Dataset images, source annotations and provider code | Excluded |
+| Patient/image manifests, individual exclusions, per-image predictions and diagnostic traces | Excluded; recreated locally by authorized dataset users |
+| Embeddings, trained classifiers and pretrained checkpoints | Excluded |
+| External Python packages and native/GPU libraries | Not vendored; exact resolved versions and hashes are in `uv.lock` |
+| Local logs, credentials, environments, caches and build directories | Excluded by tracked-file and distribution audits |
 
-| Asset | Included? | Status |
-| --- | --- | --- |
-| Python source and generated-fixture tests | Yes | Authorship confirmation pending |
-| New documentation and packaging | Yes | Project development material; license selection pending |
-| Synthetic records / solid-color test images | Generated at runtime | No real participant records or downloaded imagery |
-| Real dataset images and annotations | No | Obtain independently under the relevant terms |
-| Dataset manifests, patient IDs, cached embeddings, model weights | No | Distribution rights and privacy review required before adding any derived asset |
-| Synthetic benchmark summaries, plots, and provenance | Yes | Generated under frozen protocols; no real participant records. Historical v1 and current v2 evidence are retained. |
-| Aggregate real benchmark metrics and input/exclusion digests | Local release candidate | Compact metrics and content digests only, with no individual source-image rows. Rights/privacy review remains part of Batch 4 before public distribution. |
-| Raw real experiment traces, predictions, fitted-model details, feature matrices and individual exclusions | No | Kept in ignored local artifacts; excluded from the source distribution |
-| Vendored third-party libraries | No | Installed from public registry; versions and hashes in `uv.lock` |
+Compact real records summarize fixed evaluation cohorts of 102 IDRiD or 146
+RIM-ONE images. They contain no per-image labels, identifiers, image bytes, or
+patient linkage. Digests identify aggregate input/model/report content for
+reproduction; they are not distributed source records. The release includes
+statistical research outputs, not copies or subsets of the source databases.
+This boundary is not an assessment of every possible future derived artifact.
+Review any new export independently before adding it.
 
-## Dataset adapters
+## External datasets and weights
 
-Adapters describe file layouts; their presence does not grant access to or rights
-over a dataset. Exact archive versions, checksums, accepted terms, annotation
-sources, and permitted uses must be recorded before a dataset benchmark.
+IDRiD's provider describes CC BY 4.0 data and requests attribution. RIM-ONE DL's
+maintainers permit research/education while prohibiting copying, redistribution,
+and unauthorized commercial use. Its images, annotations and provider software
+are not included. Required dataset credits and links are retained in
+[NOTICE](../NOTICE) and [dataset evidence](dataset-evidence.md).
 
-| Adapter | Provenance entry point | Current label interpretation | Outstanding checks |
-| --- | --- | --- | --- |
-| IDRiD | [Provider portal](https://idrid.grand-challenge.org/) | Retinopathy grade; macular-edema risk converted to Boolean | Provider terms and grading semantics are recorded in [dataset evidence](dataset-evidence.md); raw and retained images are now hashed and sealed under the disclosed v2 exclusions. The risk label remains a proxy. |
-| Messidor-2 | [ADCIS](https://www.adcis.net/en/third-party/messidor2/) | Severity and binary adjudicated DME from a caller-supplied annotation CSV | Review image terms and the separate origin/terms of the actual annotation file. |
-| EyePACS | [Kaggle competition](https://www.kaggle.com/competitions/diabetic-retinopathy-detection) | Retinopathy grade; DME unavailable | Record exact source and accepted access terms; verify patient pairing from IDs. |
-| REFUGE | [Provider portal](https://refuge.grand-challenge.org/) | Folder labels mapped to illustrative high/low status | Portal retrieval was unavailable during this inventory; verify access terms and avoid interpreting a disease class as a clinical risk estimate. |
-| RIM-ONE DL | [Maintainer repository](https://github.com/miag-ull/rim-one-dl) | Folder labels mapped to illustrative high/low status | Terms and the planned provider partition are recorded in [dataset evidence](dataset-evidence.md). Image content is now hashed and sealed; participant linkage remains unverified. |
+The real-image simulations used externally obtained ResNet-50 weights. The
+[torchvision documentation](https://docs.pytorch.org/vision/stable/models.html)
+notes that pretrained assets can carry conditions from their training data.
+Neither a library license nor this project's Apache license licenses those
+weights for every use. The checkpoint identity and transform are documented;
+users obtain and use it independently under applicable terms.
 
-Provider links are provenance leads, not legal conclusions. Do not infer that
-public download availability permits redistribution. No real dataset was downloaded
-for Batches 1 or 2.
+Other adapters (EyePACS, Messidor-2, REFUGE) describe local layouts only. They do
+not download data or grant access rights and were not promoted as verified
+benchmarks. See the dataset document for their limitations and provenance leads.
 
-## Dependencies and pretrained assets
+## Dependencies, history, and evidence
 
-| Component | Role | Provenance / release task |
-| --- | --- | --- |
-| NumPy, pandas | Core numeric and tabular processing | Registry resolutions and hashes in `uv.lock`; include applicable notices if redistributing dependencies |
-| scikit-learn | Optional embedding classifier | `models` / `imaging` extra; same version-specific license review |
-| PyTorch, torchvision, Pillow | Optional image processing and embeddings | `imaging` extra; review package notices separately from weights |
-| matplotlib | Optional plotting | `plots` extra; retain required notices for any redistributed dependency assets |
-| pytest, build, setuptools, wheel, Ruff | Development and build tools | Locked development group; not vendored in this repository |
-| torchvision ResNet-50 weights | Optional externally fetched model | Not included; exact weight identity, checksum, and transform are recorded in [dataset evidence](dataset-evidence.md). Applicable training-data/weight terms remain part of release review |
+The [version-specific dependency inventory](dependency-licenses.md) covers all
+locked resolutions, including optional platform-specific native packages.
+Metadata is a review aid, not a relicensing of third-party components. No binary
+redistribution bundle, container image, or pretrained model is provided.
 
-The [torchvision model documentation](https://docs.pytorch.org/vision/stable/models.html)
-distinguishes pretrained assets and their use conditions from library code.
-The corrected extractor requests explicit `IMAGENET1K_V2` weights and the
-associated transform. Loading failures propagate. A separately seeded random
-baseline is explicit in provenance. Generated-image CPU checks passed in Batch 2. Batch 3 v2 independently re-extracted
-both real feature matrices on CPU with exact equality; this does not establish
-accelerator or cross-platform reproducibility.
-
-## Public-release decisions still required
-
-- Confirm source ownership and required acknowledgments; choose a code license.
-- Complete a version-specific direct/transitive dependency license inventory.
-- If publishing dataset-derived outputs, establish their rights and privacy
-  treatment independently of the source-code license.
-- Review the final repository history and distribution contents after all fixes.
-
-None of these pending decisions prevents local development or the synthetic
-installation exercise. They do prevent declaring the project cleared for release.
+The release preserves the evaluated source tags and evidence bytes. Its
+scientific Python source is unchanged from `sequential-benchmark-v1`; packaging
+metadata and development tooling have advanced to 0.4.0. Use the original
+checkout and wheel for frozen experiments. See [reproduction](reproducing.md)
+and the [release verification](release-verification.md).

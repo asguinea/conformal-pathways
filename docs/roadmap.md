@@ -60,21 +60,23 @@ separately. All 80 legacy real-image baselines remain unchanged. See
 
 Existing correctness fixes, data audits and baseline evidence remain completed
 work. No repeat of Batch 2 or Batch 3 is required for the currently stated
-research scope. Only Batch 4's public-release preparation remains; stronger
+research scope. Batch 4 prepares these artifacts for distribution; stronger
 clinical or universal-performance claims would require different evidence.
 
 The entry-only source snapshot is `baseline-entry-v2` (`1a798b9`). Its frozen
 protocol must be executed from that matching source and wheel. Do not refresh
 its source lock to make a new algorithm appear to reproduce the old experiment.
 
-## Batch 4 — Public release preparation
+## Batch 4 — Public release preparation (complete)
 
 Finish documentation and examples, CI, formatting and type checks, contribution
 guidance, licensing and attribution, release metadata, and privacy/security
 review of the complete distribution and new Git history. Exercise the public
 quick start in a clean checkout and verify external data instructions.
 
-Acceptance: a reviewable release candidate with all public claims supported and
-all distributed assets cleared. Remove the development-only upload classifier
-only at this stage. Creating a remote repository, pushing, or publishing a
-release is a separate owner decision.
+Acceptance: a reviewable release candidate with claims linked to evidence and
+distributed assets reviewed. Version 0.4.0 adds Apache-2.0 licensing, contribution
+and security guidance, software citation, locked release tooling, CI, and clean
+installation checks. The scientific source and earlier evidence remain unchanged.
+See [release verification](release-verification.md). Publication to the maintainer's
+GitHub repository is authorized; no package-registry upload is configured.

@@ -1,6 +1,7 @@
 include uv.lock
 include .python-version
-recursive-include docs *.md
+include LICENSE NOTICE CITATION.cff CONTRIBUTING.md SECURITY.md CHANGELOG.md
+recursive-include docs *.md *.json
 recursive-include scripts *.py
 recursive-include tests *.py
 global-exclude *.py[cod]

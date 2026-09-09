@@ -1,0 +1,20 @@
+name: Bug or reproducibility report
+description: Report an implementation or reproduction problem using non-sensitive examples.
+body:
+  - type: markdown
+    attributes:
+      value: "Use generated data. Do not upload real records, restricted images, credentials, or personal paths. For vulnerabilities, use the Security tab."
+  - type: textarea
+    id: environment
+    attributes:
+      label: Version and environment
+      description: Commit or release, Python version, OS, and installed extras.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Minimal command or generated-data example, expected outcome, actual outcome, and sanitized error output.
+    validations:
+      required: true

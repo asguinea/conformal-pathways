@@ -1,0 +1,14 @@
+title = "Conformal Pathways secret scanning"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Generated trial identifiers: first 20 hex characters of the public context SHA-256"
+condition = "AND"
+paths = ['''(^|/)evidence/batch3-(v1|v2|sequential-v1)/trials\.jsonl$''']
+regexTarget = "match"
+regexes = ['''^key"\s*:\s*"[0-9a-f]{20}"$''']

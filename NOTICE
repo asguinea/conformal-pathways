@@ -1,0 +1,23 @@
+Conformal Pathways
+Copyright 2026 Alejandro Sanchez Guinea and contributors
+
+This project's source code and original documentation are licensed under the
+Apache License, Version 2.0. See LICENSE.
+
+Research-data acknowledgments
+----------------------------
+IDRiD: Prasanna Porwal, Samiksha Pachade, Ravi Kamble, Manesh Kokare,
+Girish Deshmukh, Vivek Sahasrabuddhe, and Fabrice Meriaudeau.
+Indian Diabetic Retinopathy Image Dataset (IDRiD), IEEE Dataport, 2018.
+https://doi.org/10.21227/H25W98
+
+RIM-ONE DL: Francisco Jose Fumero Batista, Tinguaro Diaz-Aleman, Jose Sigut,
+Silvia Alayon, Rafael Arnay, and Denisse Angel-Pereira.
+RIM-ONE DL: A Unified Retinal Image Database for Assessing Glaucoma Using
+Deep Learning. Image Analysis & Stereology 39 (2020), 161-167.
+https://doi.org/10.5566/ias.2346
+
+These acknowledgments describe inputs to the research evaluation. Neither
+dataset, its annotations, provider software, nor pretrained weights are
+redistributed. Their own terms continue to apply independently of this license.
+See docs/dataset-evidence.md and docs/dependency-licenses.md.

@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MPLBACKEND: Agg
+  OMP_NUM_THREADS: '2'
+  MKL_NUM_THREADS: '2'
+
+jobs:
+  core:
+    name: Core / Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13', '3.14']
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.11.16'
+          python-version: ${{ matrix.python }}
+          enable-cache: false
+      - run: uv sync --locked
+      - run: uv run --locked pytest -q
+      - name: Offline generated-data demos
+        run: |
+          uv run --locked conformal-pathways sequential-demo --workflow dr --n 100 --seed 0 > /dev/null
+          uv run --locked conformal-pathways sequential-demo --workflow glaucoma --n 100 --seed 0 > /dev/null
+
+  optional:
+    name: Optional dependencies / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            extras: --extra models --extra plots
+          - os: macos-15
+            extras: --extra imaging --extra plots
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.11.16'
+          python-version: '3.12'
+          enable-cache: false
+      - run: uv sync --locked ${{ matrix.extras }}
+      - run: uv run --locked ${{ matrix.extras }} pytest -q
+
+  release-checks:
+    name: Lint, evidence, and distribution
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.11.16'
+          python-version: '3.12'
+          enable-cache: false
+      - run: uv sync --locked --extra plots
+      - run: uv run --locked ruff check .
+      - run: uv run --locked ruff format --check src tests scripts
+      - run: uv run --locked mypy --strict scripts/audit_release.py
+      - run: uv run --locked python scripts/audit_release.py
+      - name: Scan complete Git history for secrets
+        env:
+          GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+        run: |
+          curl --fail --silent --show-error --location --retry 3 https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz -o "$RUNNER_TEMP/gitleaks.tar.gz"
+          echo "$GITLEAKS_SHA256  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" git --log-opts=--all --redact --no-banner .
+      - run: uv run --locked --extra plots python -m conformal_pathways.benchmarks.sequential verify-evidence evidence/batch3-sequential-v1
+      - run: uv run --locked python -m build --no-isolation
+      - run: uv run --locked python scripts/verify_distribution.py dist/conformal_pathways-0.4.0-py3-none-any.whl

@@ -16,8 +16,8 @@ folder names alone do not identify a reproducible dataset version.
 Obtain data through the linked providers under their current terms. The code
 license does not grant dataset rights. This repository includes neither images,
 source annotations, patient manifests, embeddings, nor pretrained/trained weights.
-RIM-ONE assets remain local; eligibility for this local research check does not
-clear derived assets for public redistribution.
+RIM-ONE images and annotations remain local. The release distributes aggregate
+research metrics and provenance digests only; see [distribution boundaries](provenance.md).
 
 Set a local `DATA_ROOT` containing these provider layouts:
 
@@ -65,6 +65,10 @@ Analysis subsets and individual exclusion records are generated locally.
 Dataset images, filenames with grades, embeddings and case records are not
 part of the distributed evidence. The exact-byte policy does not establish
 patient independence or eliminate every possible near-duplicate relationship.
+
+For this entry-only command, first check out `baseline-entry-v2` and build its
+matching wheel. The current release uses different packaging metadata. See
+[reproduction](reproducing.md) for complete instructions and the sequential suite.
 
 ```sh
 uv sync --locked --extra imaging --extra plots
