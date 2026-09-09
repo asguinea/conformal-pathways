@@ -189,8 +189,10 @@ def _real(config, output, data_root, input_lock):
         samples, manifest, root, workflow, label, classes, audit = prepare_dataset(
             name, data_root, output / "data", cfg
         )
-        if audit["images_sha256"] != input_lock["images_sha256"][name]:
-            raise ValueError("image input identity differs from frozen protocol")
+        if audit != input_lock["dataset_audits"][name]:
+            raise ValueError(
+                "raw inputs, exclusions, or analysis identity differ from sealed audit"
+            )
         path = output / "embeddings" / f"{name}.npy"
         print(
             json.dumps({"progress": "extracting", "dataset": name, "n_images": len(samples)}),

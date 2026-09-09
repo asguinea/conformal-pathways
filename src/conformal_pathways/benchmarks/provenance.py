@@ -63,8 +63,13 @@ def source_files(root, config_path):
         root / "pyproject.toml",
         root / "uv.lock",
         config_path,
-        root / "docs/experiment-protocol.md",
     ]
+    documents = load_config(config_path).get("protocol_documents", ["docs/experiment-protocol.md"])
+    for relative in documents:
+        document = (root / relative).resolve()
+        if not document.is_relative_to((root / "docs").resolve()) or document.suffix != ".md":
+            raise ValueError("protocol documents must be Markdown files inside docs")
+        files.append(document)
     return {str(p.relative_to(root)): sha256_file(p) for p in sorted(files)}
 
 
@@ -83,6 +88,7 @@ def freeze_protocol(config_path):
     lock_path = path.with_suffix(".lock.json")
     if lock_path.exists():
         raise ValueError("freeze already exists; use a new protocol version for an amendment")
+    files = source_files(root, path)
     check = subprocess.run(
         [
             "git",
@@ -90,10 +96,7 @@ def freeze_protocol(config_path):
             "--porcelain",
             "--",
             "src",
-            "pyproject.toml",
-            "uv.lock",
-            str(path.relative_to(root)),
-            "docs/experiment-protocol.md",
+            *files,
         ],
         cwd=root,
         check=True,
@@ -105,7 +108,6 @@ def freeze_protocol(config_path):
     revision = subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True
     ).stdout.strip()
-    files = source_files(root, path)
     value = {
         "schema_version": 1,
         "protocol_sha256": sha256_file(path),

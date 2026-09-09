@@ -5,9 +5,11 @@ from __future__ import annotations
 import json
 import stat
 import tempfile
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from urllib.parse import urlparse
+
+import pandas as pd
 
 from conformal_pathways.data.loaders import load_samples_from_csv
 from conformal_pathways.features.cache import input_identity, sha256_file
@@ -18,6 +20,64 @@ from .provenance import digest, verify_protocol, write_json
 
 IDRID_TRAIN = "B. Disease Grading/2. Groundtruths/a_IDRiD_Disease_Grading_Training_Labels.csv"
 IDRID_TEST = "B. Disease Grading/2. Groundtruths/b_IDRiD_Disease_Grading_Testing_Labels.csv"
+
+
+def resolve_image_duplicates(samples, identities, labels, policy="reject"):
+    """Resolve exact bytes before splitting; never adjudicate conflicting labels."""
+    if policy not in {"reject", "exclude_conflicts_keep_lexicographic_v1"}:
+        raise ValueError("unknown image duplicate policy")
+    sample_ids = {s.sample_id for s in samples}
+    if (
+        len(sample_ids) != len(samples)
+        or len(identities) != len(samples)
+        or sample_ids != {r["sample_id"] for r in identities}
+    ):
+        raise ValueError("sample and image identities do not match")
+    groups = defaultdict(list)
+    for row in identities:
+        groups[row["image_sha256"]].append(row["sample_id"])
+    exclusions = []
+    for image_hash, members in sorted(groups.items()):
+        if len(members) < 2:
+            continue
+        if policy == "reject":
+            raise ValueError(
+                "duplicate image bytes; resolve before treating images as separate units"
+            )
+        if any(sid not in labels or any(v is None for v in labels[sid]) for sid in members):
+            raise ValueError("duplicate resolution requires complete source labels")
+        conflict = len({tuple(labels[sid]) for sid in members}) > 1
+        # Qualified IDs order test before train; no test image is moved into training.
+        removed = sorted(members) if conflict else sorted(members)[1:]
+        for sid in removed:
+            exclusions.append(
+                {
+                    "sample_id": sid,
+                    "image_sha256": image_hash,
+                    "reason": "conflicting_source_labels"
+                    if conflict
+                    else "redundant_agreeing_duplicate",
+                }
+            )
+    exclusions.sort(key=lambda row: row["sample_id"])
+    removed_ids = {row["sample_id"] for row in exclusions}
+    return (
+        [s for s in samples if s.sample_id not in removed_ids],
+        [r for r in identities if r["sample_id"] not in removed_ids],
+        exclusions,
+    )
+
+
+def idrid_source_labels(root):
+    """Retain full source DME grades for conflict detection, before proxy mapping."""
+    labels = {}
+    for partition, relative in (("train", IDRID_TRAIN), ("test", IDRID_TEST)):
+        frame = pd.read_csv(Path(root) / relative)
+        frame.columns = frame.columns.str.strip()
+        for row in frame.to_dict("records"):
+            sid = f"idrid/{partition}/{str(row['Image name']).strip()}"
+            labels[sid] = (int(row["Retinopathy grade"]), int(row["Risk of macular edema"]))
+    return labels
 
 
 def prepare_dataset(name, data_root, output, config):
@@ -52,20 +112,44 @@ def prepare_dataset(name, data_root, output, config):
     if counts != config["expected_partitions"][name]:
         raise ValueError(f"{name}: missing/extra images or changed official partition")
     identities = input_identity(manifest, root)
-    hashes = [r["image_sha256"] for r in identities]
-    if len(set(hashes)) != len(hashes):
-        raise ValueError("duplicate image bytes; resolve before treating images as separate units")
+    raw_images_sha256 = digest(identities)
+    raw_manifest_sha256 = sha256_file(manifest)
+    policy = config.get("duplicate_policy", {}).get(name, "reject")
+    if policy != "reject" and name != "idrid":
+        raise ValueError("only the IDRiD amendment permits duplicate exclusions")
+    samples, identities, exclusions = resolve_image_duplicates(
+        samples, identities, idrid_source_labels(root) if policy != "reject" else {}, policy
+    )
+    analysis_counts = dict(Counter(s.meta["split_hint"] for s in samples))
+    expected_analysis = config.get("expected_analysis_partitions", config["expected_partitions"])
+    if analysis_counts != expected_analysis[name]:
+        raise ValueError(f"{name}: analysis partition counts differ from the frozen protocol")
+    exclusion_counts = dict(Counter(r["reason"] for r in exclusions))
+    if exclusion_counts != config.get("expected_exclusions", {}).get(name, {}):
+        raise ValueError(f"{name}: exclusion counts differ from the frozen protocol")
+    if exclusions:
+        frame = pd.read_csv(manifest, dtype=str, keep_default_na=False)
+        frame[frame["sample_id"].isin({s.sample_id for s in samples})].to_csv(manifest, index=False)
+    write_json(out / f"{name}.exclusions.json", exclusions)
     audit = {
         "dataset": name,
         "workflow": workflow,
         "n_images": len(samples),
         "provider_partition_counts": counts,
+        "analysis_partition_counts": analysis_counts,
+        "raw_manifest_sha256": raw_manifest_sha256,
+        "raw_images_sha256": raw_images_sha256,
+        "duplicate_policy": policy,
+        "exclusion_counts": exclusion_counts,
+        "exclusions_sha256": digest(exclusions),
         "manifest_sha256": sha256_file(manifest),
         "images_sha256": digest(identities),
         "annotations": annotations,
         "entry_observations": [],
         "group_identity": "sample_id_fallback; patient_linkage_unverified",
-        "inference_scope": "descriptive_official_test_image_surrogate_metrics",
+        "inference_scope": "descriptive_filtered_provider_test_image_surrogate_metrics"
+        if exclusions
+        else "descriptive_official_test_image_surrogate_metrics",
         "label_interpretation": "DME risk grade > 0 proxy; not an OCT response"
         if name == "idrid"
         else "disease class mapped to toy low/high; not a longitudinal risk estimate",
